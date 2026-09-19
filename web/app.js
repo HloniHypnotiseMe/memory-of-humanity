@@ -88,4 +88,15 @@ $('search').oninput=()=>{clearTimeout(window._t);window._t=setTimeout(search,220
 $('albumsRefresh').onclick=albums;$('historyLoad').onclick=loadHistory;
 $('refresh').onclick=()=>location.reload();
 $('discover').onclick=async()=>{try{$('federation').textContent=JSON.stringify(await get('/api/discovery'),null,2)}catch(e){$('federation').textContent=e.message}};
+$('syncPeer').onclick=async()=>{
+ const peer=$('peerUrl').value.trim();
+ if(!peer)return;
+ try{
+  const discovery=await fetch(peer.replace(/\/$/,'')+'/federation/discovery').then(r=>r.json());
+  const body={peer_url:peer,request_id:'moh:sync-request:'+crypto.randomUUID(),protocol:'memory-of-humanity',peer_instance_id:discovery.instance_id,since_cursor:'0',limit:100,visibility:['public'],known_ids:[]};
+  const result=await post('/federation/sync-peer',body);
+  $('federation').textContent=JSON.stringify(result,null,2);
+  await albums(); await search();
+ }catch(e){$('federation').textContent=e.message}
+};
 bootstrap().catch(()=>{});albums().catch(()=>{});
