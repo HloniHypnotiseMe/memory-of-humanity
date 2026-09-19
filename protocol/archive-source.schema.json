@@ -1,0 +1,26 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/archive-source.schema.json",
+  "title":"Memory of Humanity Archive Source",
+  "type":"object",
+  "required":["id","source_type","title","provenance","access"],
+  "properties":{
+    "id":{"type":"string","pattern":"^moh:source:"},
+    "source_type":{"type":"string","enum":["newspaper","periodical","book","manual","photograph","map","archive","oral_archive","government_record","other"]},
+    "title":{"type":"string","minLength":1},
+    "publication":{"type":"string"},
+    "language":{"type":"string"},
+    "date":{"type":"string"},
+    "place":{"type":"string"},
+    "publisher":{"type":"string"},
+    "edition":{"type":"string"},
+    "issue":{"type":"string"},
+    "page":{"type":"string"},
+    "archive_name":{"type":"string"},
+    "source_url":{"type":"string","format":"uri"},
+    "access":{"type":"object","required":["status"],"properties":{"status":{"type":"string","enum":["open","restricted","subscription","onsite","unknown"]},"notes":{"type":"string"}},"additionalProperties":false},
+    "rights":{"type":"object","properties":{"status":{"type":"string"},"jurisdiction":{"type":"string"},"notes":{"type":"string"}},"additionalProperties":false},
+    "provenance":{"type":"object","required":["repository"],"properties":{"repository":{"type":"string"},"catalogue_id":{"type":"string"},"digitisation_note":{"type":"string"}},"additionalProperties":true}
+  },
+  "additionalProperties":false
+}
