@@ -42,7 +42,7 @@ def test_incremental_sync_returns_only_changes_after_cursor():
 def test_incremental_sync_preserves_tombstone_envelopes():
     instance = "moh:instance:archive-a"
     discovery = create_discovery(instance_id=instance, name="Archive A", current_cursor="2")
-    tombstone = {"tombstone_id": "moh:tombstone:t1", "record_id": "moh:memory:old", "reason": "withdrawn"}
+    tombstone = {"record_id": "moh:memory:old", "reason": "withdrawn", "issued_by": "moh:person:1"}
     changes = [
         {"cursor": "2", "envelope": create_envelope(
             envelope_id="moh:envelope:tombstone",
