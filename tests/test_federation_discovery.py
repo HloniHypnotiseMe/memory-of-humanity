@@ -39,7 +39,7 @@ def test_discover_instances_filters_and_sorts_peers():
     second = create_discovery(
         instance_id="moh:instance:alpha",
         name="Alpha Archive",
-        record_types=["oral_history", "photograph"],
+        record_types=["oral_history", "personal_memory"],
     )
     result = __import__("core.federation_discovery", fromlist=["discover_instances"]).discover_instances(
         [first, second],
