@@ -72,3 +72,24 @@ def create_discovery(
     }
     validate_discovery(manifest)
     return manifest
+
+
+def discover_instances(
+    manifests: list[dict[str, Any]],
+    *,
+    capability: str | None = None,
+    record_type: str | None = None,
+    visibility: str | None = None,
+) -> list[dict[str, Any]]:
+    """Return matching peer manifests without requiring a central registry."""
+    matches: list[dict[str, Any]] = []
+    for manifest in manifests:
+        validate_discovery(manifest)
+        if capability is not None and manifest["capabilities"].get(capability) is not True:
+            continue
+        if record_type is not None and record_type not in manifest.get("record_types", []):
+            continue
+        if visibility is not None and visibility not in manifest.get("visibility", []):
+            continue
+        matches.append(manifest)
+    return sorted(matches, key=lambda item: item["instance_id"])
