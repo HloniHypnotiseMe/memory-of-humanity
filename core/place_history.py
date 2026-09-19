@@ -179,7 +179,15 @@ def build_place_history(
                 if media_item and media_item.get("media_type") == "image":
                     add(key, "photographs", item_id)
 
+    already_perioded_media = {
+        media_id
+        for period in layers.values()
+        for media_ids in period.get("media", {}).values()
+        for media_id in media_ids
+    }
     for media_item in selected_media:
+        if media_item["id"] in already_perioded_media:
+            continue
         key = _period(_year_from_media(media_item))
         add(key, "media", media_item["id"])
         if media_item.get("media_type") == "image":
@@ -189,7 +197,7 @@ def build_place_history(
         if source.get("source_type") != "newspaper":
             continue
         source_place = source.get("place_id") or source.get("place")
-        if source_place != place_id:
+        if source_place not in (None, place_id):
             continue
         source_date = source.get("date")
         try:
