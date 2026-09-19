@@ -12,8 +12,6 @@
     "sources": {"type": "array", "items": {"type": "object"}},
     "albums": {"type": "array", "items": {"type": "object"}},
     "media": {"type": "array", "items": {"type": "object"}},
-    "albums": {"type": "array", "items": {"type": "object"}},
-    "media": {"type": "array", "items": {"type": "object"}},
     "source_links": {"type": "array", "items": {"type": "object"}},
     "relationships": {"type": "array", "items": {"type": "object"}},
     "contradictions": {"type": "array", "items": {"type": "object"}},
