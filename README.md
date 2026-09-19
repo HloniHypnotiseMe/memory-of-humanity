@@ -114,3 +114,26 @@ Configure and sync a peer through:
     POST /api/peers/sync
 
 The reference node intentionally remains dependency-free. Real deployments still need production authentication/authorization, encrypted transport, key management, abuse controls, media lifecycle policies, and community governance.
+
+
+## Living demonstration
+
+The reference node can be started with a synthetic, explicitly labelled Johannesburg corpus so the Memory Time Machine is immediately explorable:
+
+```bash
+python -m node.cli --seed-demo
+```
+
+Then open `http://127.0.0.1:8787/`.
+
+The demo corpus is **not historical evidence**. Every seeded memory/source/media item is marked as demonstration material. It exists to exercise the protocol: place + time layers, memory albums, media, provenance, epistemic status, disagreement, search, and memory detail.
+
+The browser experience now supports:
+- **Show me the memories of this place** — explore a place through time layers.
+- **Open a memory** — inspect contributor, remembered time, epistemic status, relationships, sources and provenance events.
+- **Memory Albums** — navigate a group of memories and media as one cultural object.
+- **What do you remember?** — contribute a memory while retaining voice, uncertainty and permissions.
+- **Preserve media** — content-addressed binary preservation.
+- **Federation** — configure a trusted peer and exchange permitted public changes.
+
+The synthetic corpus is deliberately separate from future real-world historical collections. Real historical material must carry its own source, rights, provenance and uncertainty metadata.
