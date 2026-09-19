@@ -25,8 +25,7 @@ def validate_relationship(relationship: dict[str, Any]) -> None:
             raise ValueError(f"{field} must be a moh: identifier")
 
 
-def create_relationship(*, relationship_id: str, relationship_type: str,
-                         source: str, target: str) -> dict[str, Any]:
+def create_relationship(relationship_id: str, source: str, target: str, relationship_type: str) -> dict[str, Any]:
     relationship = {
         "id": relationship_id,
         "type": relationship_type,
