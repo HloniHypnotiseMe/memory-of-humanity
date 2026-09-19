@@ -14,4 +14,22 @@ The protocol defines portable records independently of storage, interface and AI
 - Permissions are metadata carried with the record.
 - AI output is never implicitly treated as source material.
 
-The JSON Schema in this directory is the first machine-readable contract. It is intentionally small; compatibility will be expanded through tested protocol versions rather than speculative fields.
+## Federation invariants
+
+- An instance can publish an envelope without surrendering ownership of its records.
+- Stable identifiers survive export and federation.
+- Source-instance metadata travels with federated results.
+- Tombstones travel with envelopes and prevent withdrawn records from being silently resurrected.
+- Private, community, trusted-custodian and sealed material is not exposed by a public federated query unless the caller explicitly supplies the permitted visibility set.
+- Identical replicas of a stable object are deduplicated deterministically.
+- Divergent content under the same stable identifier is surfaced as a conflict rather than silently selecting a winner.
+- Relationships are only traversed between records present in the federated query set; federation does not invent edges.
+- Federation is additive: imported provenance, revisions and permissions remain distinguishable from the local instance.
+
+## Historical exploration
+
+The historical exploration contract can surface records, archive sources, Memory Albums, media, relationships, contradictions and timelines for a place/time query.
+
+The federated historical exploration contract applies the same query across multiple independent instances. A place can therefore become a distributed time machine without becoming a centralized database.
+
+The JSON Schema files in this directory are machine-readable contracts. Compatibility is expanded through tested protocol versions rather than speculative fields.
