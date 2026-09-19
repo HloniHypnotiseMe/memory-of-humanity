@@ -54,6 +54,8 @@ This repository starts as a protocol/reference implementation project. The archi
 
 **records → provenance → relationships → revisions → federation → interfaces**
 
+Federation now includes decentralized instance discovery, cursor-based incremental synchronization, deterministic import reconciliation, tombstone propagation, stable-ID conflict detection, and auditable source-instance attribution.
+
 AI is an optional interpretation and indexing layer, not a prerequisite for preserving the underlying record.
 
 ## License
