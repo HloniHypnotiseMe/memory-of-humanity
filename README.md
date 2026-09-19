@@ -54,7 +54,7 @@ This repository starts as a protocol/reference implementation project. The archi
 
 **records → provenance → relationships → revisions → federation → interfaces**
 
-Federation now includes decentralized instance discovery, cursor-based incremental synchronization, deterministic import reconciliation, tombstone propagation, stable-ID conflict detection, and auditable source-instance attribution.
+Federation now includes decentralized instance discovery, cursor-based incremental synchronization, permission-aware public export, deterministic import reconciliation, tombstone propagation, stable-ID conflict detection, configured peer trust, durable local provenance events, and auditable source-instance attribution.
 
 AI is an optional interpretation and indexing layer, not a prerequisite for preserving the underlying record.
 
@@ -94,3 +94,23 @@ Open http://127.0.0.1:8787/ in a browser.
 - `GET /api/discovery` — instance discovery metadata
 
 The local identity is a reference-node identity, not a production authentication system. A deployment that serves real communities must add appropriate authentication, authorization, consent UX, privacy controls, secure media storage, and governance.
+
+
+### Federation safety and operations
+
+A reference node does not accept arbitrary peer URLs from the browser. Peers are explicitly configured with a stable `moh:instance:` identifier and URL, and synchronization verifies the remote discovery identity before importing changes.
+
+Public federation respects record/album/media permissions and `allow_federation`. Private and community material is not exported by the public sync profile. Tombstones continue to propagate so a previously shared record can be withdrawn on replicas.
+
+Federation conflicts are preserved rather than resolved by silently selecting a winner:
+
+    GET /api/federation/conflicts
+
+Durable local provenance events are available in the node's local store. They record creation, revision, withdrawal and federation import activity without rewriting the contributor's original record.
+
+Configure and sync a peer through:
+
+    POST /api/peers
+    POST /api/peers/sync
+
+The reference node intentionally remains dependency-free. Real deployments still need production authentication/authorization, encrypted transport, key management, abuse controls, media lifecycle policies, and community governance.
