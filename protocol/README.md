@@ -33,3 +33,12 @@ The historical exploration contract can surface records, archive sources, Memory
 The federated historical exploration contract applies the same query across multiple independent instances. A place can therefore become a distributed time machine without becoming a centralized database.
 
 The JSON Schema files in this directory are machine-readable contracts. Compatibility is expanded through tested protocol versions rather than speculative fields.
+
+
+## Discovery and incremental sync
+
+An independent instance can publish a discovery manifest containing its stable instance ID, protocol version, capabilities, public visibility classes, record-type coverage and current change cursor. Endpoint descriptors are metadata only; the protocol does not require one transport.
+
+A peer can issue an incremental sync request with its last cursor. The instance returns only change envelopes after that cursor, together with the next cursor and a has_more signal. Change envelopes may contain new or revised records, albums, media, sources, relationships, source links and tombstones.
+
+The cursor belongs to the source instance. It is not a global clock and does not replace provenance timestamps. A peer should persist the cursor only after successfully processing the returned changes.
