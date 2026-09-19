@@ -30,7 +30,7 @@ def test_album_is_explorable_as_a_first_class_object():
     )
     album["items"] = [story["id"], photo["id"]]
 
-    edge = create_relationship("moh:rel:album-story", story["id"], photo["id"], "depicts")
+    edge = create_relationship("moh:rel:album-story", story["id"], photo["id"], "appears_in")
     lineage = create_lineage(
         lineage_id="moh:lineage:story-variant",
         source=story["id"],
