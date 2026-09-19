@@ -246,6 +246,22 @@ class MemoryNode:
         if not _publicly_visible(album): raise ValueError("album not publicly available")
         return explore_album(album,records=self.store.get_all("records"),media=self.store.get_all("media"),relationships=self.store.get_all("relationships"),lineage=(),exploration_id=_id("album-exploration"))
 
+    def memory_detail(self,record_id:str)->dict:
+        record=self.store.get("records",record_id)
+        if not record or not _publicly_visible(record):
+            raise ValueError("memory not found or not publicly available")
+        related=[r for r in self.store.get_all("relationships")
+                 if r.get("source")==record_id or r.get("target")==record_id]
+        source_links=[l for l in self.store.get_all("source_links") if l.get("record_id")==record_id]
+        source_ids={l.get("source_id") for l in source_links}
+        sources=[s for s in self.store.get_all("sources") if s.get("id") in source_ids]
+        provenance=[e for e in self.store.get_all("provenance_events") if e.get("record_id")==record_id]
+        revisions=[r for r in self.store.get_all("records")
+                   if r.get("id")==record_id and r.get("revision",{}).get("version",1) > 1]
+        return {"record":record,"relationships":related,"sources":sources,
+                "source_links":source_links,"provenance_events":provenance,
+                "revision_history":revisions}
+
     def create_album(self,body:dict)->dict:
         if not self.store.get("identities",body["contributor_id"]): raise ValueError("contributor identity must exist before creating an album")
         value=create_album(album_id=body.get("id") or _id("album"),title=body["title"],contributor_id=body["contributor_id"]); value.update({k:body[k] for k in ("description","items","people","places","time","permissions") if k in body}); validate_album(value); self.store.upsert("albums",value); self.export_change(envelope_id=_id("envelope"),albums=[value]); self.add_provenance_event(event_type="created", actor_id=body["contributor_id"], record_id=value["id"], details={"album": True}); return value
@@ -271,6 +287,7 @@ class Handler(BaseHTTPRequestHandler):
             if path=="/api/consents": return self._json(200,{"consents":self.node.store.get_all("consents")})
             if path=="/api/albums": return self._json(200,{"albums":_public_albums(self.node.store.get_all("albums"))})
             if path.startswith("/api/albums/") and path.endswith("/explore"): return self._json(200,self.node.explore_album(path.split("/")[3]))
+            if path.startswith("/api/memories/") and path.count("/") == 3: return self._json(200,self.node.memory_detail(path.split("/")[3]))
             if path=="/api/search":
                 result=search_records(_public_records(self.node.store.get_all("records")),text=(q.get("q") or [""])[0],limit=min(int((q.get("limit") or [20])[0]),100)); return self._json(200,result)
             if path=="/api/media/": raise ValueError("media id is required")
