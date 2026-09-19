@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memory-of-humanity.org/protocol/federation-sync.schema.json",
+  "title": "Memory of Humanity Incremental Federation Sync",
+  "type": "object",
+  "definitions": {
+    "envelope": {
+      "type": "object",
+      "required": ["protocol", "envelope_id", "instance_id", "records"],
+      "properties": {
+        "protocol": {"const": "memory-of-humanity"},
+        "envelope_id": {"type": "string", "pattern": "^moh:envelope:"},
+        "instance_id": {"type": "string", "pattern": "^moh:instance:"},
+        "records": {"type": "array"},
+        "albums": {"type": "array"},
+        "media": {"type": "array"},
+        "sources": {"type": "array"},
+        "relationships": {"type": "array"},
+        "source_links": {"type": "array"},
+        "tombstones": {"type": "array"},
+        "signatures": {"type": "array"}
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "title": "Sync Request",
+      "type": "object",
+      "required": ["request_id", "protocol", "peer_instance_id", "since_cursor"],
+      "properties": {
+        "request_id": {"type": "string", "pattern": "^moh:sync-request:"},
+        "protocol": {"const": "memory-of-humanity"},
+        "peer_instance_id": {"type": "string", "pattern": "^moh:instance:"},
+        "since_cursor": {"type": "string", "pattern": "^[0-9]+$"},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "visibility": {"type": "array", "items": {"type": "string", "enum": ["public", "private", "community", "trusted_custodian", "sealed"]}},
+        "known_ids": {"type": "array", "items": {"type": "string", "pattern": "^moh:"}}
+      },
+      "additionalProperties": false
+    },
+    {
+      "title": "Sync Response",
+      "type": "object",
+      "required": ["response_id", "protocol", "source_instance", "since_cursor", "next_cursor", "changes"],
+      "properties": {
+        "response_id": {"type": "string", "pattern": "^moh:sync-response:"},
+        "protocol": {"const": "memory-of-humanity"},
+        "source_instance": {"type": "string", "pattern": "^moh:instance:"},
+        "since_cursor": {"type": "string", "pattern": "^[0-9]+$"},
+        "next_cursor": {"type": "string", "pattern": "^[0-9]+$"},
+        "has_more": {"type": "boolean"},
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["cursor", "envelope"],
+            "properties": {
+              "cursor": {"type": "string", "pattern": "^[0-9]+$"},
+              "envelope": {"$ref": "#/definitions/envelope"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
