@@ -80,7 +80,13 @@ class MemoryNode:
     def create_memory(self,body:dict)->dict:
         contributor=body["contributor_id"]
         if not self.store.get("identities",contributor): raise ValueError("contributor identity must exist before submitting a memory")
-        value=create_memory(record_id=body.get("id") or _id("memory"),contributor_id=contributor,text=body["text"],record_type=body.get("record_type","personal_memory"),epistemic_status=body.get("epistemic_status","remembered"),created_at=body.get("created_at") or datetime.now(timezone.utc).isoformat())
+        value=create_memory(
+            record_id=body.get("id") or _id("memory"), contributor_id=contributor,
+            text=body["text"], record_type=body.get("record_type","personal_memory"),
+            epistemic_status=body.get("epistemic_status","remembered"),
+            created_at=body.get("created_at") or datetime.now(timezone.utc).isoformat(),
+            place_id=body.get("place_id"), time=body.get("time"), people=body.get("people"),
+            media=body.get("media"), permissions=body.get("permissions"))
         self.store.upsert("records",value); self.export_change(envelope_id=_id("envelope"),records=[value]); return value
     def create_media(self,body:dict)->dict:
         contributor=body["contributor_id"]
@@ -120,20 +126,22 @@ class Handler(BaseHTTPRequestHandler):
             if path in ("/","/app.js","/styles.css"): return self._serve_asset(path)
             if path=="/health": return self._json(200,{"ok":True,"protocol":"memory-of-humanity","instance_id":self.node.instance_id})
             if path in ("/federation/discovery","/api/discovery"): return self._json(200,self.node.discovery())
-            if path in ("/records","/api/records"): return self._json(200,{"records":self.node.store.get_all("records")})
+            if path in ("/records","/api/records"): return self._json(200,{"records":_public_records(self.node.store.get_all("records"))})
             if path=="/api/identities": return self._json(200,{"identities":self.node.store.get_all("identities")})
             if path=="/api/consents": return self._json(200,{"consents":self.node.store.get_all("consents")})
-            if path=="/api/albums": return self._json(200,{"albums":self.node.store.get_all("albums")})
+            if path=="/api/albums": return self._json(200,{"albums":_public_albums(self.node.store.get_all("albums"))})
             if path.startswith("/api/albums/") and path.endswith("/explore"): return self._json(200,self.node.explore_album(path.split("/")[3]))
             if path=="/api/search":
-                result=search_records(self.node.store.get_all("records"),text=(q.get("q") or [""])[0],limit=min(int((q.get("limit") or [20])[0]),100)); return self._json(200,result)
+                result=search_records(_public_records(self.node.store.get_all("records")),text=(q.get("q") or [""])[0],limit=min(int((q.get("limit") or [20])[0]),100)); return self._json(200,result)
             if path=="/api/media/": raise ValueError("media id is required")
             if path.startswith("/media/"):
-                value,data=self.node.media_bytes(path.split("/")[2]); self.send_response(200); self.send_header("Content-Type",value.get("mime_type","application/octet-stream")); self.send_header("Content-Length",str(len(data))); self.end_headers(); self.wfile.write(data); return
+                value,data=self.node.media_bytes(path.split("/")[2])
+                if not _publicly_visible(value): return self._json(404,{"error":"media not publicly available"})
+                self.send_response(200); self.send_header("Content-Type",value.get("mime_type","application/octet-stream")); self.send_header("Content-Length",str(len(data))); self.end_headers(); self.wfile.write(data); return
             if path=="/api/place-history":
                 place=(q.get("place_id") or [None])[0]
                 if not place: raise ValueError("place_id is required")
-                result=build_place_history(self.node.store.get_all("records"),self.node.store.get_all("sources"),self.node.store.get_all("relationships"),history_id=_id("place-history"),place_id=place,albums=self.node.store.get_all("albums"),media=self.node.store.get_all("media")); return self._json(200,result)
+                result=build_place_history(self.node.store.get_all("records"),self.node.store.get_all("sources"),self.node.store.get_all("relationships"),history_id=_id("place-history"),place_id=place,start=(q.get("start") or [None])[0],end=(q.get("end") or [None])[0],albums=_public_albums(self.node.store.get_all("albums")),media=[m for m in self.node.store.get_all("media") if _publicly_visible(m)]); return self._json(200,result)
             return self._json(404,{"error":"not found"})
         except (ValueError,KeyError,TypeError,OverflowError) as exc: return self._json(400,{"error":str(exc)})
     def do_POST(self)->None:
