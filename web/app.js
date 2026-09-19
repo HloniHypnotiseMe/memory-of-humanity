@@ -31,7 +31,8 @@ async function loadHistory(){
  const params=new URLSearchParams({place_id:place});if($('historyStart').value.trim())params.set('start',$('historyStart').value.trim());if($('historyEnd').value.trim())params.set('end',$('historyEnd').value.trim());
  try{
   const j=await get('/api/place-history?'+params);renderSummary(j);
-  $('history').innerHTML=j.layers.map(layer=>'<article class="history-period"><h3>'+esc(layer.period)+'</h3>'+Object.entries(layer.layers).map(([name,ids])=>'<div class="layer"><span class="pill">'+esc(name)+'</span> '+ids.length+' item(s)'+(ids.slice(0,8).map(id=>'<button data-memory="'+esc(id)+'">'+esc(id)+'</button>').join(' '))+'</div>').join('')+'</article>').join('')||'<div class="muted">No public memories found for this place and period.</div>';
+  const itemView=id=>String(id).startsWith('moh:memory:')?'<button data-memory="'+esc(id)+'">'+esc(id)+'</button>':'<span class="pill">'+esc(id)+'</span>';
+  $('history').innerHTML=j.layers.map(layer=>'<article class="history-period"><h3>'+esc(layer.period)+'</h3>'+Object.entries(layer.layers).map(([name,ids])=>'<div class="layer"><span class="pill">'+esc(name)+'</span> '+ids.length+' item(s) '+ids.slice(0,8).map(itemView).join(' ')+'</div>').join('')+'</article>').join('')||'<div class="muted">No public memories found for this place and period.</div>';
   document.querySelectorAll('[data-memory]').forEach(el=>el.onclick=()=>showMemory(el.dataset.memory));
  }catch(e){$('history').textContent=e.message}
 }
