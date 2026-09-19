@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memory-of-humanity.org/protocol/federation-discovery.schema.json",
+  "title": "Memory of Humanity Federation Instance Discovery",
+  "type": "object",
+  "required": ["instance_id", "protocol", "protocol_version", "name", "capabilities", "current_cursor"],
+  "properties": {
+    "instance_id": {"type": "string", "pattern": "^moh:instance:[A-Za-z0-9._:-]+$"},
+    "protocol": {"type": "string", "const": "memory-of-humanity"},
+    "protocol_version": {"type": "string"},
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": ["string", "null"]},
+    "operator": {"type": ["string", "null"]},
+    "contact": {"type": ["string", "null"]},
+    "endpoints": {"type": "array", "items": {"type": "object"}},
+    "capabilities": {
+      "type": "object",
+      "required": ["discovery", "incremental_sync"],
+      "properties": {
+        "discovery": {"type": "boolean"},
+        "incremental_sync": {"type": "boolean"},
+        "federation": {"type": "boolean"},
+        "search": {"type": "boolean"},
+        "historical_exploration": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "record_types": {"type": "array", "items": {"type": "string"}},
+    "visibility": {"type": "array", "items": {"type": "string", "enum": ["public", "private", "community", "trusted_custodian", "sealed"]}},
+    "coverage": {"type": "object"},
+    "current_cursor": {"type": "string", "pattern": "^[0-9]+$"},
+    "updated_at": {"type": ["string", "null"], "format": "date-time"},
+    "metadata": {"type": "object"}
+  },
+  "additionalProperties": false
+}
