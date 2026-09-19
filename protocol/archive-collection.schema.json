@@ -1,0 +1,22 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/archive-collection.schema.json",
+  "title":"Memory of Humanity Archive Collection",
+  "type":"object",
+  "required":["id","name","provider","region","source_types","access"],
+  "properties":{
+    "id":{"type":"string","pattern":"^moh:collection:"},
+    "name":{"type":"string","minLength":1},
+    "provider":{"type":"string","minLength":1},
+    "region":{"type":"string","minLength":1},
+    "source_types":{"type":"array","items":{"type":"string"},"minItems":1},
+    "coverage":{"type":"object","properties":{"start":{"type":"string"},"end":{"type":"string"},"notes":{"type":"string"}},"additionalProperties":false},
+    "discovery_url":{"type":"string","format":"uri"},
+    "api_url":{"type":"string","format":"uri"},
+    "ocr_available":{"type":"boolean"},
+    "bulk_data_available":{"type":"boolean"},
+    "access":{"type":"string","enum":["open","free_registration","subscription","onsite","mixed","unknown"]},
+    "rights_notes":{"type":"string"}
+  },
+  "additionalProperties":false
+}
