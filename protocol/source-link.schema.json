@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/source-link.schema.json",
+  "title":"Memory of Humanity Source Link",
+  "type":"object",
+  "required":["id","record_id","source_id","link_type","provenance"],
+  "properties":{
+    "id":{"type":"string","pattern":"^moh:sourcelink:"},
+    "record_id":{"type":"string","pattern":"^moh:"},
+    "source_id":{"type":"string","pattern":"^moh:source:"},
+    "link_type":{"type":"string","enum":["supports","mentions","quotes","depicts","documents","published_in","derived_from","contextualizes","contradicts"]},
+    "locator":{"type":"object","properties":{"page":{"type":"string"},"section":{"type":"string"},"paragraph":{"type":"string"},"timestamp":{"type":"string"},"url":{"type":"string","format":"uri"}},"additionalProperties":false},
+    "notes":{"type":"string"},
+    "provenance":{"type":"object","required":["created_by"],"properties":{"created_by":{"type":"string"},"created_at":{"type":"string"}},"additionalProperties":true}
+  },
+  "additionalProperties":false
+}
