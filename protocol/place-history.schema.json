@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/place-history.schema.json",
+  "title":"Memory of Humanity Place History View",
+  "type":"object",
+  "required":["id","place_id","layers"],
+  "properties":{
+    "id":{"type":"string","pattern":"^moh:place-history:[A-Za-z0-9._:-]+$"},
+    "place_id":{"type":"string","pattern":"^moh:place:"},
+    "start":{"type":["string","null"]},
+    "end":{"type":["string","null"]},
+    "layers":{"type":"array","items":{"type":"object"}},
+    "totals":{"type":"object"}
+  },
+  "additionalProperties":false
+}
