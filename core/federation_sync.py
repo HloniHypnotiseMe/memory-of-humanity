@@ -1,4 +1,6 @@
 from __future__ import annotations
+from copy import deepcopy
+from datetime import datetime, timezone
 from typing import Any
 
 from .federation import validate_envelope
@@ -54,6 +56,45 @@ def create_sync_request(
     return request
 
 
+
+def _federation_allowed(value: dict[str, Any], requested_visibility: set[str]) -> bool:
+    permissions = value.get("permissions")
+    if not isinstance(permissions, dict):
+        return "public" in requested_visibility
+    visibility = permissions.get("visibility", "public")
+    if visibility not in requested_visibility:
+        return False
+    if permissions.get("allow_federation") is False:
+        return False
+    if visibility == "sealed":
+        sealed_until = permissions.get("sealed_until")
+        if not sealed_until:
+            return False
+        try:
+            return datetime.fromisoformat(sealed_until.replace("Z", "+00:00")) <= datetime.now(timezone.utc)
+        except ValueError:
+            return False
+    return visibility == "public"
+
+def _filter_envelope(envelope: dict[str, Any], requested_visibility: set[str]) -> dict[str, Any]:
+    filtered = deepcopy(envelope)
+    for collection in ("records", "albums", "media"):
+        filtered[collection] = [item for item in envelope.get(collection, []) if _federation_allowed(item, requested_visibility)]
+    visible_ids = {
+        item.get("id") for collection in ("records", "albums", "media", "sources")
+        for item in filtered.get(collection, [])
+        if isinstance(item, dict)
+    }
+    filtered["relationships"] = [
+        item for item in envelope.get("relationships", [])
+        if item.get("source") in visible_ids and item.get("target") in visible_ids
+    ]
+    filtered["source_links"] = [
+        item for item in envelope.get("source_links", [])
+        if item.get("record_id") in visible_ids and item.get("source_id") in visible_ids
+    ]
+    return filtered
+
 def incremental_sync(
     *,
     discovery: dict[str, Any],
@@ -80,7 +121,8 @@ def incremental_sync(
         validate_envelope(envelope)
         if envelope["instance_id"] != discovery["instance_id"]:
             raise ValueError("change envelope belongs to another instance")
-        selected.append({"cursor": str(cursor), "envelope": envelope})
+        filtered_envelope = _filter_envelope(envelope, set(request.get("visibility", ["public"])))
+        selected.append({"cursor": str(cursor), "envelope": filtered_envelope})
         if len(selected) >= limit:
             break
 
