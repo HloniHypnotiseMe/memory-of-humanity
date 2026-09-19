@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memory-of-humanity.org/protocol/relationship.schema.json",
+  "title": "Memory Relationship",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "source", "target"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:rel:[A-Za-z0-9._:-]+$"},
+    "type": {"type": "string", "enum": ["supports", "contradicts", "elaborates", "derives_from", "variant_of", "translated_from", "supersedes", "related_to", "appears_in", "remembers", "told", "about", "describes", "protects", "predecessor_of", "supported_by"]},
+    "source": {"type": "string", "pattern": "^moh:"},
+    "target": {"type": "string", "pattern": "^moh:"},
+    "provenance": {"$ref": "provenance.schema.json"}
+  }
+}
