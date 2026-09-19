@@ -97,3 +97,34 @@ def incremental_sync(
         "has_more": has_more,
         "changes": selected,
     }
+
+
+def validate_sync_response(response: dict[str, Any]) -> None:
+    required = {"response_id", "protocol", "source_instance", "since_cursor", "next_cursor", "changes"}
+    missing = required - response.keys()
+    if missing:
+        raise ValueError(f"missing required fields: {sorted(missing)}")
+    if response["protocol"] != "memory-of-humanity":
+        raise ValueError("unsupported protocol")
+    if not response["response_id"].startswith("moh:sync-response:"):
+        raise ValueError("invalid response_id")
+    if not response["source_instance"].startswith("moh:instance:"):
+        raise ValueError("invalid source_instance")
+    since = _cursor(response["since_cursor"])
+    next_cursor = _cursor(response["next_cursor"])
+    if next_cursor < since:
+        raise ValueError("next_cursor cannot move backwards")
+    if not isinstance(response["changes"], list):
+        raise ValueError("changes must be a list")
+    previous = since
+    for change in response["changes"]:
+        cursor = _cursor(change.get("cursor", ""))
+        if cursor <= previous or cursor > next_cursor:
+            raise ValueError("change cursors must be ordered within response window")
+        envelope = change.get("envelope")
+        if not isinstance(envelope, dict):
+            raise ValueError("change must contain an envelope")
+        validate_envelope(envelope)
+        if envelope["instance_id"] != response["source_instance"]:
+            raise ValueError("change envelope source does not match response")
+        previous = cursor
