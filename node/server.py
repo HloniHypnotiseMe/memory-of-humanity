@@ -194,6 +194,16 @@ class Handler(BaseHTTPRequestHandler):
             if path=="/federation/sync": return self._json(200,self.node.sync(body))
             if path=="/federation/import": return self._json(200,self.node.import_response(body))
             if path=="/federation/publish": return self._json(201,{"cursor":str(self.node.export_change(**body))})
+            if path=="/federation/sync-peer":
+                import urllib.request
+                from urllib.parse import urljoin
+                peer_url=body.pop("peer_url").rstrip("/")+"/"
+                def fetcher(method,endpoint,payload):
+                    data=json.dumps(payload).encode() if payload is not None else None
+                    req=urllib.request.Request(urljoin(peer_url,endpoint.lstrip("/")),data=data,method=method,headers={"Content-Type":"application/json"} if data else {})
+                    with urllib.request.urlopen(req,timeout=10) as response:
+                        return json.loads(response.read())
+                return self._json(200,self.node.sync_peer(body,fetcher))
             if path=="/api/identities": return self._json(201,self.node.create_identity(body))
             if path=="/api/consents": return self._json(201,self.node.create_consent(body))
             if path=="/api/memories": return self._json(201,self.node.create_memory(body))
