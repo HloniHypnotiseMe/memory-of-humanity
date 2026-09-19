@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/search-result.schema.json",
+  "title":"Memory of Humanity Search Result",
+  "type":"object",
+  "required":["query","results"],
+  "properties":{
+    "query":{"type":"object"},
+    "results":{"type":"array","items":{"type":"object","required":["id","record_type","epistemic_status","score"],"properties":{
+      "id":{"type":"string"},
+      "record_type":{"type":"string"},
+      "epistemic_status":{"type":"string"},
+      "score":{"type":"number","minimum":0},
+      "matched_fields":{"type":"array","items":{"type":"string"}},
+      "record":{"type":"object"}
+    },"additionalProperties":true}}
+  },
+  "additionalProperties":false
+}
