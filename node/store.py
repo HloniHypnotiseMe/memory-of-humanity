@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 COLLECTIONS = ("records", "albums", "media", "sources", "relationships", "source_links", "tombstones")
-LOCAL_COLLECTIONS = ("identities", "consents")
+LOCAL_COLLECTIONS = ("identities", "consents", "provenance_events", "peers")
 
 class MemoryStore:
     def __init__(self, path: str | Path = "data/memory.db"):
