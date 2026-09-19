@@ -53,3 +53,21 @@ def test_invalid_epistemic_status_is_rejected():
     record["epistemic_status"] = "fact"
     with pytest.raises(ValueError, match="epistemic_status"):
         validate_record(record)
+
+
+def test_memory_can_carry_place_time_media_and_permissions():
+    record = create_memory(
+        record_id="moh:memory:context",
+        contributor_id="moh:person:a",
+        text="My grandfather told me this happened here.",
+        place_id="moh:place:johannesburg",
+        time={"type": "range", "start": "1980", "end": "1989"},
+        people=["moh:person:grandfather"],
+        media=["moh:media:photo"],
+        permissions={"visibility": "private"},
+        created_at="2026-09-19T09:00:00+00:00",
+    )
+    validate_record(record)
+    assert record["place_id"] == "moh:place:johannesburg"
+    assert record["time"]["end"] == "1989"
+    assert record["permissions"]["visibility"] == "private"
