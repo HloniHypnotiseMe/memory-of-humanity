@@ -1,0 +1,26 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/memory-album-exploration.schema.json",
+  "title":"Memory of Humanity Memory Album Exploration",
+  "type":"object",
+  "required":["id","album","items","people","places","records","media","relationships","lineage"],
+  "properties":{
+    "id":{"type":"string","pattern":"^moh:album-exploration:[A-Za-z0-9._:-]+$"},
+    "album":{"type":"object","required":["id","title","provenance"],"properties":{
+      "id":{"type":"string","pattern":"^moh:album:"},
+      "title":{"type":"string"},
+      "description":{"type":["string","null"]},
+      "provenance":{"type":"object"},
+      "permissions":{"type":["object","null"]}
+    },"additionalProperties":true},
+    "items":{"type":"array","items":{"type":"string","pattern":"^moh:"}},
+    "people":{"type":"array","items":{"type":"string","pattern":"^moh:person:"}},
+    "places":{"type":"array","items":{"type":"string","pattern":"^moh:place:"}},
+    "records":{"type":"array","items":{"type":"string","pattern":"^moh:"}},
+    "media":{"type":"array","items":{"type":"string","pattern":"^moh:media:"}},
+    "relationships":{"type":"array","items":{"type":"object"}},
+    "lineage":{"type":"array","items":{"type":"object"}},
+    "notes":{"type":"array","items":{"type":"string"}}
+  },
+  "additionalProperties":false
+}
