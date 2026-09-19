@@ -1,3 +1,5 @@
+from core.albums import create_album
+from core.media import create_media
 from core.place_history import build_place_history
 from core.records import create_memory
 from core.relationships import create_relationship
@@ -53,3 +55,43 @@ def test_place_history_surfaces_disagreements():
     )
     assert result["layers"][0]["layers"]["disagreements"] == ["moh:rel:1"]
     assert result["totals"]["disagreements"] == 1
+
+
+def test_place_history_surfaces_albums_and_first_class_media():
+    place = "moh:place:johannesburg"
+    album = create_album(
+        album_id="moh:album:jhb-childhood-1980s",
+        title="Johannesburg Childhood",
+        contributor_id="person:1",
+    )
+    album["places"] = [place]
+    album["time"] = {"type": "period", "start": "1980", "end": "1989"}
+    photo = create_media(
+        media_id="moh:media:photo-1",
+        media_type="image",
+        content_hash="abcdef12",
+        contributor_id="person:1",
+    )
+    audio = create_media(
+        media_id="moh:media:voice-1",
+        media_type="audio",
+        content_hash="12345678",
+        contributor_id="person:1",
+    )
+    album["items"] = [photo["id"], audio["id"]]
+
+    result = build_place_history(
+        [], [], [],
+        history_id="moh:place-history:jhb",
+        place_id=place,
+        albums=[album],
+        media=[photo, audio],
+    )
+    layers = {item["period"]: item["layers"] for item in result["layers"]}
+
+    assert layers["1980"]["albums"] == [album["id"]]
+    assert photo["id"] in layers["1980"]["media"]
+    assert audio["id"] in layers["1980"]["media"]
+    assert photo["id"] in layers["1980"]["photographs"]
+    assert result["totals"]["albums"] == 1
+    assert result["totals"]["media"] == 4
