@@ -1,4 +1,6 @@
-from core.albums import create_album\nfrom core.historical_explorer import explore_history\nfrom core.media import create_media
+from core.albums import create_album
+from core.historical_explorer import explore_history
+from core.media import create_media
 from core.records import create_memory
 from core.relationships import create_relationship
 from core.source_links import create_source_link
