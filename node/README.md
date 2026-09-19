@@ -20,3 +20,32 @@ Then:
 The node uses SQLite by default. The database is implementation storage; stable IDs, provenance and protocol records remain portable.
 
 The HTTP layer is intentionally small and transport-specific concerns are kept outside the protocol contracts.
+
+
+## Configured federation peers
+
+Register a peer locally before syncing:
+
+    POST /api/peers
+
+Example body:
+
+    {"id":"moh:peer:archive","instance_id":"moh:instance:archive","url":"http://127.0.0.1:8788","name":"Archive"}
+
+Then:
+
+    POST /api/peers/sync
+    {"peer_id":"moh:peer:archive"}
+
+The node fetches the peer discovery document, verifies the advertised instance ID matches the configured identity, requests incremental changes from the last stored cursor, validates the response, and imports only changes permitted by the public federation profile.
+
+Inspect:
+
+    GET /api/peers
+    GET /api/federation/conflicts
+
+Private/community/trusted-custodian records are not exported through the public federation profile. Same-version divergent content is retained as a conflict rather than overwritten.
+
+## Reference-node security boundary
+
+The node is a protocol reference implementation, not a production internet service. It has no built-in user authentication, TLS termination, cryptographic peer signatures, rate limiting, or administrator authorization. Put those controls at the deployment boundary before exposing a node to untrusted networks.
