@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Provenance Chain",
+  "type": "object",
+  "required": ["record_id", "events"],
+  "properties": {
+    "record_id": {"type": "string", "pattern": "^moh:"},
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["event_type", "actor_id"],
+        "properties": {
+          "event_type": {"type": "string", "enum": ["created", "revised", "annotated", "exported", "imported", "federated", "withdrawn", "restored"]},
+          "actor_id": {"type": "string", "pattern": "^moh:"},
+          "timestamp": {"type": ["string", "null"]},
+          "source_instance": {"type": ["string", "null"], "pattern": "^moh:instance:"},
+          "details": {"type": ["object", "null"]}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
