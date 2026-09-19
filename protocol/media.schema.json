@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Media Reference",
+  "type": "object",
+  "required": ["id", "media_type", "content_hash", "provenance"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:media:[A-Za-z0-9._:-]+$"},
+    "media_type": {"type": "string", "enum": ["image", "audio", "video", "document", "scan", "map", "diagram", "other"]},
+    "mime_type": {"type": "string"},
+    "content_hash": {"type": "string", "minLength": 8},
+    "source_uri": {"type": "string", "format": "uri"},
+    "captured_at": {"type": ["string", "null"], "format": "date-time"},
+    "location": {"type": ["string", "null"]},
+    "derivative_of": {"type": ["string", "null"], "pattern": "^moh:media:[A-Za-z0-9._:-]+$"},
+    "rights": {"type": ["object", "null"]},
+    "provenance": {"type": "object", "required": ["contributor_id"], "properties": {"contributor_id": {"type": "string"}}, "additionalProperties": true}
+  },
+  "additionalProperties": false
+}
