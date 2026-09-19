@@ -56,7 +56,7 @@ def validate_record(record: dict[str, Any]) -> None:
         raise ValueError("permissions must be an object or null")
 
 
-def create_memory(*, record_id: str, contributor_id: str, text: str,
+def create_memory(record_id: str, contributor_id: str, text: str,
                   record_type: str = "personal_memory",
                   epistemic_status: str = "remembered",
                   created_at: str | None = None,
