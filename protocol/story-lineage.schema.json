@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Story Lineage",
+  "type": "object",
+  "required": ["id", "source"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:lineage:[A-Za-z0-9._:-]+$"},
+    "source": {"type": "string", "pattern": "^moh:"},
+    "target": {"type": ["string", "null"], "pattern": "^moh:"},
+    "relationship": {"type": "string", "enum": ["retelling", "variant", "translation", "adaptation", "quotation", "appearance", "derived_from"]},
+    "date": {"type": ["string", "null"]},
+    "language": {"type": ["string", "null"]},
+    "contributor_id": {"type": "string"},
+    "notes": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
