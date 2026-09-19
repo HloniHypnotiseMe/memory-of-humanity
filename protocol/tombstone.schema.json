@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Tombstone",
+  "type": "object",
+  "required": ["record_id", "reason", "issued_by"],
+  "properties": {
+    "record_id": {"type": "string", "pattern": "^moh:"},
+    "reason": {"type": "string", "enum": ["withdrawn", "privacy", "legal_request", "retention_expired", "duplicate", "other"]},
+    "issued_by": {"type": "string", "pattern": "^moh:"},
+    "issued_at": {"type": ["string", "null"]},
+    "replacement_id": {"type": ["string", "null"], "pattern": "^moh:"},
+    "note": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
