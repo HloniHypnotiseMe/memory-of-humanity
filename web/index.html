@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Memory of Humanity</title><link rel="stylesheet" href="/styles.css"></head>
+<body>
+<header><div><div class="eyebrow">MEMORY OF HUMANITY</div><h1>Remember what humanity remembers.</h1><p>A living, federated memory layer for people, families, communities, places, stories, artefacts and knowledge.</p></div><button id="refresh">Refresh</button></header>
+<main>
+<section class="card composer"><h2>Add a memory</h2><div class="grid"><label>Contributor ID<input id="contributor" value="moh:person:local"></label><label>Memory type<select id="recordType"><option value="personal_memory">Personal memory</option><option value="oral_history">Oral history</option><option value="story">Story</option><option value="cultural_practice">Cultural practice</option><option value="collective_memory">Collective memory</option><option value="place_memory">Place memory</option><option value="how_to">How-to knowledge</option></select></label><label>Epistemic status<select id="status"><option value="remembered">Remembered</option><option value="reported">Reported</option><option value="traditional">Traditional</option><option value="observed">Observed</option><option value="documented">Documented</option><option value="uncertain">Uncertain</option></select></label></div><textarea id="memory" placeholder="Tell us what is remembered. Keep the voice and uncertainty intact."></textarea><button id="save">Preserve memory</button><span id="saveState"></span></section>
+<section class="card"><div class="row"><div><h2>Memory search</h2><p class="muted">Search the original records. AI interpretation never replaces them.</p></div><input id="search" placeholder="Search memories..."></div><div id="results" class="results"></div></section>
+<section class="card"><div class="row"><div><h2>Memory Albums</h2><p class="muted">Albums keep the album itself as a cultural object.</p></div><button id="albumsRefresh">Load albums</button></div><div id="albums" class="results"></div></section>
+<section class="card"><div class="row"><div><h2>Federation</h2><p class="muted">This node can discover peers and exchange cursor-based changes.</p></div><button id="discover">Inspect node</button></div><pre id="federation">Ready.</pre></section>
+</main><footer>Memory ≠ Fact · AI ≠ Authority · Disagreement = Data · Revision ≠ Deletion · Provenance Travels</footer>
+<script src="/app.js"></script></body></html>
