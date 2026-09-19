@@ -18,6 +18,7 @@ def _time_bounds(value: Any) -> tuple[date | None, date | None]:
     if not start and value.get("label"):
         start = value["label"]
         end = value["label"]
+
     def parse(raw: Any, end_of_period: bool = False) -> date | None:
         if not isinstance(raw, str):
             return None
@@ -35,6 +36,7 @@ def _time_bounds(value: Any) -> tuple[date | None, date | None]:
             return date.fromisoformat(raw[:10])
         except (TypeError, ValueError):
             return None
+
     return parse(start), parse(end, True)
 
 
@@ -118,6 +120,8 @@ def explore_history(
     record_types: set[str] | None = None,
     relationship_types: set[str] | None = None,
     limit: int = 100,
+    albums: Iterable[dict[str, Any]] | None = None,
+    media: Iterable[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not exploration_id.startswith("moh:historical-exploration:"):
         raise ValueError("exploration_id must start with moh:historical-exploration:")
@@ -130,10 +134,17 @@ def explore_history(
     relationship_list = list(relationships)
     source_list = list(sources)
     link_list = list(source_links)
+    album_list = list(albums or [])
+    media_list = list(media or [])
+
     for record in record_list:
         validate_record(record)
     for link in link_list:
         validate_source_link(link)
+    for album in album_list:
+        validate_album(album)
+    for item in media_list:
+        validate_media(item)
 
     selected = [
         record for record in record_list
@@ -169,6 +180,21 @@ def explore_history(
         if link.get("record_id") in selected_ids and link.get("source_id") in selected_source_ids
     ]
 
+    selected_albums = [
+        album for album in album_list
+        if _album_matches(album, place_id, time)
+    ]
+    album_media_ids = {
+        item_id
+        for album in selected_albums
+        for item_id in album.get("items", [])
+        if isinstance(item_id, str)
+    }
+    selected_media = [
+        item for item in media_list
+        if item["id"] in album_media_ids
+    ]
+
     contradictions = [
         edge for edge in selected_relationships
         if edge.get("type") == "contradicts"
@@ -189,6 +215,8 @@ def explore_history(
         "time": time,
         "records": selected,
         "sources": selected_sources,
+        "albums": selected_albums,
+        "media": selected_media,
         "source_links": selected_links,
         "relationships": selected_relationships,
         "contradictions": contradictions,
