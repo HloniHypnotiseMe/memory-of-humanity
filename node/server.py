@@ -67,13 +67,28 @@ class MemoryNode:
     def sync(self,request:dict)->dict:
         changes=self.store.changes_after(int(request["since_cursor"]),int(request.get("limit",100))); return incremental_sync(discovery=self.discovery(),request=request,changes=changes)
     def import_response(self,response:dict)->dict:
-        local=self.snapshot(); result=apply_sync_response(local=local,response=response)
+        local=self.snapshot()
+        result=apply_sync_response(local=local,response=response)
+        accepted=set(result["accepted"])
         for collection in COLLECTIONS:
             for candidate in local[collection]:
-                if self.store._id(candidate) in result["accepted"]: self.store.upsert(collection,candidate)
+                if self.store._id(candidate) in accepted:
+                    self.store.upsert(collection,candidate)
         for tombstone_id in result["tombstones"]:
-            for collection in COLLECTIONS: self.store.remove(collection,tombstone_id)
-        self.store.set_meta("cursor:"+result["source_instance"],result["applied_cursor"]); return result
+            for collection in COLLECTIONS:
+                self.store.remove(collection,tombstone_id)
+        for tombstone in local.get("tombstones", []):
+            if tombstone["record_id"] in result["tombstones"]:
+                self.store.upsert("tombstones",tombstone)
+        self.store.set_meta("cursor:"+result["source_instance"],result["applied_cursor"])
+        return result
+    def sync_peer(self,request:dict,fetcher)->dict:
+        discovery=fetcher("GET","/federation/discovery",None)
+        if discovery.get("instance_id") != request.get("peer_instance_id"):
+            raise ValueError("peer discovery identity mismatch")
+        response=fetcher("POST","/federation/sync",request)
+        return self.import_response(response)
+
     def create_identity(self,body:dict)->dict:
         value=create_identity(identity_id=body.get("id") or _id("person"),kind=body.get("kind","person"),display_name=body["display_name"]); value.update({k:body[k] for k in ("description","contact") if k in body}); validate_identity(value); self.store.upsert("identities",value); return value
     def create_consent(self,body:dict)->dict:
