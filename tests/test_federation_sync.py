@@ -1,6 +1,6 @@
 from core.federation import create_envelope
 from core.federation_discovery import create_discovery
-from core.federation_sync import create_sync_request, incremental_sync
+from core.federation_sync import create_sync_request, incremental_sync, validate_sync_response
 from core.records import create_memory
 
 
@@ -58,3 +58,17 @@ def test_incremental_sync_preserves_tombstone_envelopes():
     )
     response = incremental_sync(discovery=discovery, request=request, changes=changes)
     assert response["changes"][0]["envelope"]["tombstones"][0]["record_id"] == "moh:memory:old"
+
+
+def test_sync_response_validation_rejects_backwards_cursor():
+    response = {
+        "response_id": "moh:sync-response:r3",
+        "protocol": "memory-of-humanity",
+        "source_instance": "moh:instance:archive-a",
+        "since_cursor": "5",
+        "next_cursor": "4",
+        "changes": [],
+    }
+    import pytest
+    with pytest.raises(ValueError, match="backwards"):
+        validate_sync_response(response)
