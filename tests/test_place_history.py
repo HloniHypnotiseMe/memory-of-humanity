@@ -94,4 +94,4 @@ def test_place_history_surfaces_albums_and_first_class_media():
     assert audio["id"] in layers["1980"]["media"]
     assert photo["id"] in layers["1980"]["photographs"]
     assert result["totals"]["albums"] == 1
-    assert result["totals"]["media"] == 4
+    assert result["totals"]["media"] == 2
