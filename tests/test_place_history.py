@@ -95,3 +95,24 @@ def test_place_history_surfaces_albums_and_first_class_media():
     assert photo["id"] in layers["1980"]["photographs"]
     assert result["totals"]["albums"] == 1
     assert result["totals"]["media"] == 2
+
+
+def test_place_history_excludes_other_places_and_respects_time_window():
+    target = "moh:place:johannesburg"
+    other = "moh:place:cape-town"
+    memories = [
+        record("moh:memory:target-1984", "Target", target, 1984),
+        record("moh:memory:target-1995", "Later", target, 1995),
+        record("moh:memory:other-1984", "Other", other, 1984),
+    ]
+    result = build_place_history(
+        memories, [], [],
+        history_id="moh:place-history:filtered",
+        place_id=target,
+        start="1980",
+        end="1989",
+    )
+    ids = [rid for period in result["layers"] for values in period["layers"].values() for rid in values]
+    assert "moh:memory:target-1984" in ids
+    assert "moh:memory:target-1995" not in ids
+    assert "moh:memory:other-1984" not in ids
