@@ -69,15 +69,18 @@ def build_place_history(
     if not place_id.startswith("moh:place:"):
         raise ValueError("place_id must start with moh:place:")
 
+    record_list = list(records)
+    source_list = list(sources)
+    relationship_list = list(relationships)
     layers: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
-    for record in records:
+    for record in record_list:
         year = _year(record.get("time"))
         key = str(year // 10 * 10) if year is not None else "unknown"
         layers[key][_layer_for_record(record)].append(record["id"])
         for media_id in _media_ids(record):
             layers[key]["photographs"].append(media_id)
 
-    for source in sources:
+    for source in source_list:
         if source.get("source_type") != "newspaper":
             continue
         source_date = source.get("date")
@@ -89,12 +92,12 @@ def build_place_history(
             key = str(year // 10 * 10)
         layers[key]["newspapers"].append(source["id"])
 
-    for relationship in relationships:
+    for relationship in relationship_list:
         if relationship.get("type") != "contradicts":
             continue
         key = "unknown"
         for candidate in (relationship.get("source"), relationship.get("target")):
-            for record in records:
+            for record in record_list:
                 if record.get("id") == candidate:
                     year = _year(record.get("time"))
                     if year is not None:
