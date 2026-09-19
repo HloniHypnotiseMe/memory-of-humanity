@@ -5,7 +5,7 @@ import json
 from typing import Any
 
 from .federation import validate_envelope
-from .federation_sync import _cursor
+from .federation_sync import _cursor, validate_sync_response
 
 
 COLLECTIONS = ("records", "albums", "media", "sources", "relationships", "source_links")
@@ -76,8 +76,9 @@ def apply_sync_response(
 ) -> dict[str, Any]:
     if not isinstance(local, dict):
         raise ValueError("local state must be an object")
-    if not isinstance(response, dict) or response.get("protocol") != "memory-of-humanity":
+    if not isinstance(response, dict):
         raise ValueError("invalid sync response")
+    validate_sync_response(response)
     source = source_instance or response.get("source_instance")
     if not isinstance(source, str) or not source.startswith("moh:instance:"):
         raise ValueError("source_instance must be a moh: identifier")
