@@ -30,7 +30,7 @@ Register a peer locally before syncing:
 
 Example body:
 
-    {"id":"moh:peer:archive","instance_id":"moh:instance:archive","url":"http://127.0.0.1:8788","name":"Archive"}
+    {"id":"moh:peer:archive","instance_id":"moh:instance:archive","url":"http://127.0.0.1:8788","name":"Archive","shared_secret":"use-a-random-secret-of-at-least-16-characters"}
 
 Then:
 
@@ -49,3 +49,6 @@ Private/community/trusted-custodian records are not exported through the public 
 ## Reference-node security boundary
 
 The node is a protocol reference implementation, not a production internet service. It has no built-in user authentication, TLS termination, cryptographic peer signatures, rate limiting, or administrator authorization. Put those controls at the deployment boundary before exposing a node to untrusted networks.
+
+
+If a shared secret is configured, outgoing sync requests use HMAC-SHA256 and the receiving node verifies the request before exporting its configured public changes. The secret is never returned by `GET /api/peers`. Keep it outside source control and use HTTPS for real deployments.
