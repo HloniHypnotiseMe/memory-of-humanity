@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Time Reference",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": {"type": "string", "enum": ["instant", "range", "period", "approximate", "unknown"]},
+    "start": {"type": ["string", "null"]},
+    "end": {"type": ["string", "null"]},
+    "label": {"type": ["string", "null"]},
+    "precision": {"type": ["string", "null"], "enum": ["day", "month", "year", "decade", "century", "unknown", null]},
+    "calendar": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
