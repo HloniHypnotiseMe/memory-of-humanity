@@ -16,7 +16,8 @@ from core.federation_sync import incremental_sync
 from core.identity import create_identity, validate_identity
 from core.place_history import build_place_history
 from core.media import create_media, validate_media
-from core.records import create_memory, validate_record
+from core.records import create_memory, validate_record, revise_record
+from core.tombstones import create_tombstone, validate_tombstone
 from core.search import search_records
 from .store import COLLECTIONS, LOCAL_COLLECTIONS, MemoryStore
 from .media_store import MediaBlobStore
@@ -88,6 +89,30 @@ class MemoryNode:
             place_id=body.get("place_id"), time=body.get("time"), people=body.get("people"),
             media=body.get("media"), permissions=body.get("permissions"))
         self.store.upsert("records",value); self.export_change(envelope_id=_id("envelope"),records=[value]); return value
+    def revise_memory(self,record_id:str,body:dict)->dict:
+        original=self.store.get("records",record_id)
+        if not original: raise ValueError("memory not found")
+        contributor=body.get("contributor_id") or original["provenance"]["contributor_id"]
+        if not self.store.get("identities",contributor): raise ValueError("contributor identity must exist before revising a memory")
+        revised=revise_record(original,text=body.get("text"),contributor_id=contributor,change_type=body.get("change_type","correction"))
+        self.store.upsert("records",revised)
+        self.export_change(envelope_id=_id("envelope"),records=[revised])
+        return revised
+
+    def withdraw_memory(self,record_id:str,body:dict)->dict:
+        original=self.store.get("records",record_id)
+        if not original: raise ValueError("memory not found")
+        issued_by=body.get("issued_by") or original["provenance"]["contributor_id"]
+        tombstone=create_tombstone(record_id=record_id,reason=body.get("reason","withdrawn"),issued_by=issued_by)
+        tombstone["issued_at"]=datetime.now(timezone.utc).isoformat()
+        if body.get("replacement_id"): tombstone["replacement_id"]=body["replacement_id"]
+        if body.get("note"): tombstone["note"]=body["note"]
+        validate_tombstone(tombstone)
+        self.store.upsert("tombstones",tombstone)
+        self.store.remove("records",record_id)
+        self.export_change(envelope_id=_id("envelope"),tombstones=[tombstone])
+        return tombstone
+
     def create_media(self,body:dict)->dict:
         contributor=body["contributor_id"]
         if not self.store.get("identities",contributor): raise ValueError("contributor identity must exist before uploading media")
@@ -155,6 +180,10 @@ class Handler(BaseHTTPRequestHandler):
             if path=="/api/consents": return self._json(201,self.node.create_consent(body))
             if path=="/api/memories": return self._json(201,self.node.create_memory(body))
             if path=="/api/media": return self._json(201,self.node.create_media(body))
+            if path.startswith("/api/memories/") and path.endswith("/revise"):
+                return self._json(200,self.node.revise_memory(path.split("/")[3],body))
+            if path.startswith("/api/memories/") and path.endswith("/withdraw"):
+                return self._json(200,self.node.withdraw_memory(path.split("/")[3],body))
             if path=="/api/albums": return self._json(201,self.node.create_album(body))
             return self._json(404,{"error":"not found"})
         except (ValueError,KeyError,TypeError,json.JSONDecodeError) as exc: return self._json(400,{"error":str(exc)})
