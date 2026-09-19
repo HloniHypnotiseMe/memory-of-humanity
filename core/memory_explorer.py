@@ -18,9 +18,21 @@ def explore(
     epistemic_statuses: set[str] | None = None,
     relationship_types: set[str] | None = None,
     limit: int = 20,
+    sources: Iterable[dict[str, Any]] | None = None,
+    source_links: Iterable[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     record_list = list(records)
     relationship_list = list(relationships)
+    source_list = list(sources or [])
+    source_link_list = list(source_links or [])
+    for link in source_link_list:
+        validate_source_link(link)
+    source_ids = {source.get("id") for source in source_list if isinstance(source, dict)}
+    selected_record_ids = {record["id"] for record in record_list}
+    relevant_source_links = [
+        link for link in source_link_list
+        if link["record_id"] in selected_record_ids and link["source_id"] in source_ids
+    ]
     for record in record_list:
         validate_record(record)
 
@@ -54,5 +66,6 @@ def explore(
         },
         "records": search["results"],
         "graph": graph,
-        "sources": [],
+        "sources": [source for source in source_list if source.get("id") in {link["source_id"] for link in relevant_source_links}],
+        "source_links": relevant_source_links,
     }
