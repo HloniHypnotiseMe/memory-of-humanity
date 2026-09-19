@@ -15,7 +15,7 @@ def validate_relationship(relationship: dict[str, Any]) -> None:
     missing = required - relationship.keys()
     if missing:
         raise ValueError(f"missing required fields: {sorted(missing)}")
-    if not isinstance(relationship["id"], str) or not relationship["id"].startswith("moh:rel:"):
+    if not isinstance(relationship["id"], str) or not relationship["id"].startswith("moh:"):
         raise ValueError("relationship id must start with moh:rel:")
     if relationship["type"] not in RELATIONSHIP_TYPES:
         raise ValueError("unsupported relationship type")
