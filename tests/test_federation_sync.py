@@ -72,3 +72,34 @@ def test_sync_response_validation_rejects_backwards_cursor():
     import pytest
     with pytest.raises(ValueError, match="backwards"):
         validate_sync_response(response)
+
+
+def test_incremental_sync_does_not_federate_private_records():
+    instance = "moh:instance:archive-a"
+    private_record = create_memory(
+        record_id="moh:memory:private",
+        contributor_id="moh:person:1",
+        text="Private family memory",
+        permissions={"visibility": "private", "allow_federation": True},
+        created_at="2026-01-01T00:00:00+00:00",
+    )
+    public_record = create_memory(
+        record_id="moh:memory:public",
+        contributor_id="moh:person:1",
+        text="Public memory",
+        permissions={"visibility": "public", "allow_federation": True},
+        created_at="2026-01-01T00:00:00+00:00",
+    )
+    discovery = create_discovery(instance_id=instance, name="Archive A", current_cursor="1")
+    request = create_sync_request(request_id="moh:sync-request:privacy", peer_instance_id=instance)
+    response = incremental_sync(
+        discovery=discovery,
+        request=request,
+        changes=[{"cursor": "1", "envelope": create_envelope(
+            envelope_id="moh:envelope:privacy",
+            instance_id=instance,
+            records=[private_record, public_record],
+        )}],
+    )
+    ids = [item["id"] for item in response["changes"][0]["envelope"]["records"]]
+    assert ids == ["moh:memory:public"]
