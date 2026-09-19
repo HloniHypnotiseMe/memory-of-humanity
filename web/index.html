@@ -31,7 +31,7 @@
 <button id="mediaUpload">Preserve media</button><span id="mediaState"></span></section>
 
 <section class="card"><div class="row"><div><h2>Federation</h2><p class="muted">Independent nodes discover one another, then exchange only the public changes permitted by the configured peer relationship.</p></div><button id="discover">Inspect node</button></div>
-<div class="grid"><label>Peer name<input id="peerName" placeholder="Johannesburg family archive"></label><label>Peer instance ID<input id="peerInstance" placeholder="moh:instance:archive"></label><label>Peer URL<input id="peerUrl" placeholder="http://127.0.0.1:8788"></label></div>
+<div class="grid"><label>Peer name<input id="peerName" placeholder="Johannesburg family archive"></label><label>Peer instance ID<input id="peerInstance" placeholder="moh:instance:archive"></label><label>Peer URL<input id="peerUrl" placeholder="http://127.0.0.1:8788"></label><label>Shared secret (optional)<input id="peerSecret" type="password" placeholder="Same secret on both nodes"></label></div>
 <div class="row"><button id="addPeer">Trust / configure peer</button><button id="syncPeer">Sync configured peer</button><button id="conflictsLoad">Inspect conflicts</button></div>
 <div id="peerList" class="results"></div><pre id="federation">Ready.</pre></section>
 </main><footer>Memory ≠ Fact · AI ≠ Authority · Disagreement = Data · Revision ≠ Deletion · Provenance Travels</footer>
