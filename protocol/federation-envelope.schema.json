@@ -1,5 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memory-of-humanity.org/protocol/federation-envelope.schema.json",
   "title": "Memory of Humanity Federation Envelope",
   "type": "object",
   "required": ["protocol", "envelope_id", "instance_id", "records"],
@@ -10,6 +11,11 @@
     "instance_id": {"type": "string", "pattern": "^moh:instance:[A-Za-z0-9._:-]+$"},
     "created_at": {"type": ["string", "null"], "format": "date-time"},
     "records": {"type": "array", "items": {"type": "object"}},
+    "albums": {"type": "array", "items": {"type": "object"}},
+    "media": {"type": "array", "items": {"type": "object"}},
+    "sources": {"type": "array", "items": {"type": "object"}},
+    "relationships": {"type": "array", "items": {"type": "object"}},
+    "source_links": {"type": "array", "items": {"type": "object"}},
     "tombstones": {"type": "array", "items": {"type": "object"}},
     "signatures": {"type": "array", "items": {"type": "object"}}
   },
