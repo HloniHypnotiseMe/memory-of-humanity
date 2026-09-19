@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Place Memory View",
+  "type": "object",
+  "required": ["id", "place_id", "records"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:place-memory:[A-Za-z0-9._:-]+$"},
+    "place_id": {"type": "string", "pattern": "^moh:place:"},
+    "time": {"type": ["object", "null"]},
+    "records": {"type": "array", "items": {"type": "string", "pattern": "^moh:"}},
+    "relationships": {"type": "array", "items": {"type": "string", "pattern": "^moh:"}},
+    "include_private": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}
