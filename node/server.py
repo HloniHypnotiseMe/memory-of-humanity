@@ -12,6 +12,7 @@ from core.consent import create_consent, validate_consent
 from core.federation import create_envelope, validate_envelope
 from core.federation_discovery import create_discovery
 from core.federation_import import apply_sync_response
+from core.federation_auth import create_auth, verify_auth
 from core.federation_sync import incremental_sync
 from core.identity import create_identity, validate_identity
 from core.place_history import build_place_history
@@ -80,6 +81,11 @@ class MemoryNode:
     def export_change(self,*,envelope_id:str,records:list[dict]|None=None,**collections)->int:
         envelope=create_envelope(envelope_id=envelope_id,instance_id=self.instance_id,records=records or [],**{k:collections.get(k,[]) for k in COLLECTIONS if k not in {"records","tombstones"}},tombstones=collections.get("tombstones",[])); return self.store.add_change(envelope)
     def sync(self,request:dict)->dict:
+        peer = next((p for p in self.store.get_all("peers") if p.get("instance_id") == request.get("peer_instance_id") and p.get("enabled")), None)
+        if peer and peer.get("shared_secret"):
+            auth = request.get("auth")
+            if not auth or not verify_auth(secret=peer["shared_secret"], request_id=request["request_id"], auth=auth):
+                raise ValueError("authenticated peer request required")
         changes=self.store.changes_after(int(request["since_cursor"]),int(request.get("limit",100))); return incremental_sync(discovery=self.discovery(),request=request,changes=changes)
     def import_response(self,response:dict)->dict:
         local=self.snapshot()
@@ -122,7 +128,7 @@ class MemoryNode:
         return event
 
     def peers(self) -> list[dict]:
-        return self.store.get_all("peers")
+        return [{k: v for k, v in peer.items() if k != "shared_secret"} for peer in self.store.get_all("peers")]
 
     def conflicts(self) -> list[dict]:
         return self.store.get_all("federation_conflicts")
@@ -137,8 +143,12 @@ class MemoryNode:
             raise ValueError("instance_id must start with moh:instance:")
         if not (url.startswith("http://") or url.startswith("https://")):
             raise ValueError("peer url must use http:// or https://")
+        shared_secret = body.get("shared_secret")
+        if shared_secret is not None and (not isinstance(shared_secret, str) or len(shared_secret) < 16):
+            raise ValueError("shared_secret must be at least 16 characters")
         value = {"id": peer_id, "instance_id": instance_id, "url": url,
-                 "name": body.get("name") or instance_id, "enabled": bool(body.get("enabled", True))}
+                 "name": body.get("name") or instance_id, "enabled": bool(body.get("enabled", True)),
+                 "shared_secret": shared_secret}
         self.store.upsert("peers", value)
         return value
 
@@ -167,6 +177,8 @@ class MemoryNode:
             "since_cursor": self.store.get_meta("cursor:" + peer["instance_id"], "0") or "0",
             "limit": 100, "visibility": ["public"], "known_ids": [],
         }
+        if peer.get("shared_secret"):
+            request["auth"] = create_auth(secret=peer["shared_secret"], request_id=request["request_id"], nonce=uuid.uuid4().hex)
         result = self.sync_peer(request, fetcher)
         return {"peer": peer, "request": request, "result": result}
 
