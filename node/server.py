@@ -73,6 +73,7 @@ class Handler(BaseHTTPRequestHandler):
             if path in ("/federation/discovery","/api/discovery"): return self._json(200,self.node.discovery())
             if path in ("/records","/api/records"): return self._json(200,{"records":self.node.store.get_all("records")})
             if path=="/api/identities": return self._json(200,{"identities":self.node.store.get_all("identities")})
+            if path=="/api/consents": return self._json(200,{"consents":self.node.store.get_all("consents")})
             if path=="/api/albums": return self._json(200,{"albums":self.node.store.get_all("albums")})
             if path=="/api/search":
                 result=search_records(self.node.store.get_all("records"),text=(q.get("q") or [""])[0],limit=min(int((q.get("limit") or [20])[0]),100)); return self._json(200,result)
