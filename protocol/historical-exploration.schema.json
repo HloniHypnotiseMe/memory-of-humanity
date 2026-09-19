@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memory-of-humanity.org/protocol/historical-exploration.schema.json",
+  "title": "Memory of Humanity Historical Exploration",
+  "type": "object",
+  "required": ["id", "place_id", "records"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:historical-exploration:[A-Za-z0-9._:-]+$"},
+    "place_id": {"type": "string", "pattern": "^moh:place:"},
+    "time": {"type": ["object", "null"]},
+    "records": {"type": "array", "items": {"type": "object"}},
+    "sources": {"type": "array", "items": {"type": "object"}},
+    "source_links": {"type": "array", "items": {"type": "object"}},
+    "relationships": {"type": "array", "items": {"type": "object"}},
+    "contradictions": {"type": "array", "items": {"type": "object"}},
+    "timeline": {"type": "object"},
+    "limit": {"type": "integer", "minimum": 1, "maximum": 1000}
+  },
+  "additionalProperties": false
+}
