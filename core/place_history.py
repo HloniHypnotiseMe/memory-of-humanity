@@ -103,6 +103,10 @@ def build_place_history(
     media_by_id = {item["id"]: item for item in media_list}
     layers: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
 
+    def add(period: str, layer: str, value: str) -> None:
+        if value not in layers[period][layer]:
+            layers[period][layer].append(value)
+
     for record in record_list:
         year = _year(record.get("time"))
         key = _period(year)
