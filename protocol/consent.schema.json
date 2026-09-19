@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Consent Record",
+  "type": "object",
+  "required": ["id", "subject_id", "scope", "status"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:consent:[A-Za-z0-9._:-]+$"},
+    "subject_id": {"type": "string", "pattern": "^moh:"},
+    "scope": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["granted", "withdrawn", "expired", "unknown", "not_applicable"]},
+    "granted_by": {"type": ["string", "null"], "pattern": "^moh:"},
+    "created_at": {"type": ["string", "null"]},
+    "expires_at": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
