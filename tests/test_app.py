@@ -15,3 +15,22 @@ def test_local_contributor_consent_memory_and_album_flow(tmp_path):
     assert album["items"]==[record["id"]]
     assert node.discovery()["instance_id"]=="moh:instance:test"
     store.close()
+
+
+def test_revision_and_withdrawal_preserve_history_as_tombstone(tmp_path):
+    store = MemoryStore(tmp_path/"memory.db")
+    node = MemoryNode(store, instance_id="moh:instance:test", name="Test")
+    node.create_identity({"id":"moh:person:test","kind":"person","display_name":"Test Contributor"})
+    record = node.create_memory({
+        "id":"moh:memory:revision",
+        "contributor_id":"moh:person:test",
+        "text":"The first version.",
+    })
+    revised = node.revise_memory(record["id"], {"text":"The corrected version."})
+    assert revised["revision"]["version"] == 2
+    assert store.get("records", record["id"])["content"]["text"] == "The corrected version."
+    tombstone = node.withdraw_memory(record["id"], {"reason":"withdrawn","issued_by":"moh:person:test"})
+    assert tombstone["record_id"] == record["id"]
+    assert store.get("records", record["id"]) is None
+    assert store.get("tombstones", record["id"])["reason"] == "withdrawn"
+    store.close()
