@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .federation import validate_envelope
+from .federation_auth import validate_auth
 from .federation_discovery import VISIBILITIES, validate_discovery
 
 
@@ -32,6 +33,8 @@ def validate_sync_request(request: dict[str, Any]) -> None:
         raise ValueError("unsupported visibility")
     if not all(isinstance(value, str) and value.startswith("moh:") for value in request.get("known_ids", [])):
         raise ValueError("known_ids must contain moh: identifiers")
+    if "auth" in request:
+        validate_auth(request["auth"])
 
 
 def create_sync_request(
@@ -42,6 +45,7 @@ def create_sync_request(
     limit: int = 100,
     visibility: list[str] | None = None,
     known_ids: list[str] | None = None,
+    auth: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     request = {
         "request_id": request_id,
@@ -52,6 +56,8 @@ def create_sync_request(
         "visibility": visibility or ["public"],
         "known_ids": known_ids or [],
     }
+    if auth is not None:
+        request["auth"] = auth
     validate_sync_request(request)
     return request
 
