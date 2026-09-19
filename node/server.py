@@ -15,14 +15,14 @@ from core.identity import create_identity, validate_identity
 from core.place_history import build_place_history
 from core.records import create_memory, validate_record
 from core.search import search_records
-from .store import COLLECTIONS, LOCAL_COLLECTIONS, MemoryStore
+from .store import COLLECTIONS, LOCAL_COLLECTIONS, MemoryStore\nfrom .media_store import MediaBlobStore\nfrom core.album_explorer import explore_album
 from .web import read_asset, query_params
 
 
 def _id(prefix: str) -> str: return f"moh:{prefix}:{uuid.uuid4().hex}"
 
 class MemoryNode:
-    def __init__(self, store: MemoryStore, *, instance_id: str, name: str): self.store,self.instance_id,self.name=store,instance_id,name
+    def __init__(self, store: MemoryStore, *, instance_id: str, name: str, media_root: str = "data/media"): self.store,self.instance_id,self.name,self.media=store,instance_id,name,MediaBlobStore(media_root)
     def discovery(self)->dict:
         record_types=sorted({r.get("record_type") for r in self.store.get_all("records") if r.get("record_type")})
         return create_discovery(instance_id=self.instance_id,name=self.name,current_cursor=self.store.current_cursor(),record_types=record_types,visibility=["public"],endpoints=[{"rel":"discovery","method":"GET","path":"/federation/discovery"},{"rel":"sync","method":"POST","path":"/federation/sync"}])
@@ -54,6 +54,27 @@ class MemoryNode:
         if not self.store.get("identities",contributor): raise ValueError("contributor identity must exist before submitting a memory")
         value=create_memory(record_id=body.get("id") or _id("memory"),contributor_id=contributor,text=body["text"],record_type=body.get("record_type","personal_memory"),epistemic_status=body.get("epistemic_status","remembered"),created_at=body.get("created_at") or datetime.now(timezone.utc).isoformat())
         self.store.upsert("records",value); self.export_change(envelope_id=_id("envelope"),records=[value]); return value
+    def create_media(self,body:dict)->dict:
+        contributor=body["contributor_id"]
+        if not self.store.get("identities",contributor): raise ValueError("contributor identity must exist before uploading media")
+        raw=base64.b64decode(body["data_base64"],validate=True)
+        content_hash=body.get("content_hash") or __import__("hashlib").sha256(raw).hexdigest()
+        self.media.put(raw,content_hash)
+        value=create_media(media_id=body.get("id") or _id("media"),media_type=body["media_type"],content_hash=content_hash,contributor_id=contributor,source_uri=body.get("source_uri"))
+        for key in ("mime_type","captured_at","location","derivative_of","rights"):
+            if key in body: value[key]=body[key]
+        validate_media(value); self.store.upsert("media",value); self.export_change(envelope_id=_id("envelope"),media=[value]); return value
+
+    def media_bytes(self,media_id:str)->tuple[dict,bytes]:
+        value=self.store.get("media",media_id)
+        if not value: raise ValueError("media not found")
+        return value,self.media.get(value["content_hash"])
+
+    def explore_album(self,album_id:str)->dict:
+        album=self.store.get("albums",album_id)
+        if not album: raise ValueError("album not found")
+        return explore_album(album,records=self.store.get_all("records"),media=self.store.get_all("media"),relationships=self.store.get_all("relationships"),lineage=(),exploration_id=_id("album-exploration"))
+
     def create_album(self,body:dict)->dict:
         value=create_album(album_id=body.get("id") or _id("album"),title=body["title"],contributor_id=body["contributor_id"]); value.update({k:body[k] for k in ("description","items","people","places","time","permissions") if k in body}); validate_album(value); self.store.upsert("albums",value); self.export_change(envelope_id=_id("envelope"),albums=[value]); return value
 
@@ -74,10 +95,10 @@ class Handler(BaseHTTPRequestHandler):
             if path in ("/records","/api/records"): return self._json(200,{"records":self.node.store.get_all("records")})
             if path=="/api/identities": return self._json(200,{"identities":self.node.store.get_all("identities")})
             if path=="/api/consents": return self._json(200,{"consents":self.node.store.get_all("consents")})
-            if path=="/api/albums": return self._json(200,{"albums":self.node.store.get_all("albums")})
+            if path=="/api/albums": return self._json(200,{"albums":self.node.store.get_all("albums")})\n            if path.startswith("/api/albums/") and path.endswith("/explore"): return self._json(200,self.node.explore_album(path.split("/")[3]))
             if path=="/api/search":
                 result=search_records(self.node.store.get_all("records"),text=(q.get("q") or [""])[0],limit=min(int((q.get("limit") or [20])[0]),100)); return self._json(200,result)
-            if path=="/api/place-history":
+            if path=="/api/media/": raise ValueError("media id is required")\n            if path.startswith("/media/"):\n                value,data=self.node.media_bytes(path.split("/")[2]); self.send_response(200); self.send_header("Content-Type",value.get("mime_type","application/octet-stream")); self.send_header("Content-Length",str(len(data))); self.end_headers(); self.wfile.write(data); return\n            if path=="/api/place-history":
                 place=(q.get("place_id") or [None])[0]
                 if not place: raise ValueError("place_id is required")
                 result=build_place_history(self.node.store.get_all("records"),self.node.store.get_all("sources"),self.node.store.get_all("relationships"),history_id=_id("place-history"),place_id=place,albums=self.node.store.get_all("albums"),media=self.node.store.get_all("media")); return self._json(200,result)
@@ -92,7 +113,7 @@ class Handler(BaseHTTPRequestHandler):
             if path=="/federation/publish": return self._json(201,{"cursor":str(self.node.export_change(**body))})
             if path=="/api/identities": return self._json(201,self.node.create_identity(body))
             if path=="/api/consents": return self._json(201,self.node.create_consent(body))
-            if path=="/api/memories": return self._json(201,self.node.create_memory(body))
+            if path=="/api/memories": return self._json(201,self.node.create_memory(body))\n            if path=="/api/media": return self._json(201,self.node.create_media(body))
             if path=="/api/albums": return self._json(201,self.node.create_album(body))
             return self._json(404,{"error":"not found"})
         except (ValueError,KeyError,TypeError,json.JSONDecodeError) as exc: return self._json(400,{"error":str(exc)})
