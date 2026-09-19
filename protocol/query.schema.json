@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Query",
+  "type": "object",
+  "required": ["query_id", "query_type"],
+  "properties": {
+    "query_id": {"type": "string", "pattern": "^moh:query:[A-Za-z0-9._:-]+$"},
+    "query_type": {"type": "string", "enum": ["text", "graph", "timeline", "place_memory"]},
+    "text": {"type": ["string", "null"]},
+    "entity_id": {"type": ["string", "null"], "pattern": "^moh:"},
+    "place_id": {"type": ["string", "null"], "pattern": "^moh:place:"},
+    "time": {"type": ["object", "null"]},
+    "record_types": {"type": "array", "items": {"type": "string"}},
+    "relationship_types": {"type": "array", "items": {"type": "string"}},
+    "limit": {"type": "integer", "minimum": 1, "maximum": 1000}
+  },
+  "additionalProperties": false
+}
