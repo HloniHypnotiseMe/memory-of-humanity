@@ -87,3 +87,12 @@ The first executable milestone should prove that a record can be:
 4. versioned
 5. related to another record
 6. exported without losing provenance
+
+
+## Discovery and incremental synchronization
+
+Federation discovery is decentralized. An instance can publish a machine-readable manifest describing public capabilities, record-type coverage, visibility classes and its current change cursor. No central registry is required by the protocol.
+
+Incremental synchronization is cursor-based and transport-agnostic. A peer asks an instance for changes after its last successfully processed cursor. The response contains only the change envelopes in that window, plus a next cursor and a has_more signal. Tombstones are ordinary sync changes so withdrawals propagate without pretending the original record never existed.
+
+The cursor is owned by the source instance. It is not a global clock and does not replace provenance timestamps.
