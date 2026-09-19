@@ -182,8 +182,7 @@ def build_place_history(
     already_perioded_media = {
         media_id
         for period in layers.values()
-        for media_ids in period.get("media", {}).values()
-        for media_id in media_ids
+        for media_id in period.get("media", [])
     }
     for media_item in selected_media:
         if media_item["id"] in already_perioded_media:
