@@ -16,6 +16,7 @@ def _record(record_id, text, version=1):
 
 def _response(envelopes):
     return {
+        "response_id": "moh:sync-response:test",
         "protocol": "memory-of-humanity",
         "source_instance": "moh:instance:archive-a",
         "since_cursor": "0",
