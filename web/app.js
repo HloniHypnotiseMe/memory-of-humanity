@@ -95,6 +95,7 @@ async function loadPeers(){
 $('addPeer').onclick=async()=>{
  try{
   const body={name:$('peerName').value.trim(),instance_id:$('peerInstance').value.trim(),url:$('peerUrl').value.trim()};
+  if($('peerSecret').value.trim())body.shared_secret=$('peerSecret').value.trim();
   const p=await post('/api/peers',body);
   $('federation').textContent='Configured '+p.id+' · '+p.instance_id;
   await loadPeers();
