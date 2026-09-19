@@ -1,4 +1,4 @@
-from core.historical_explorer import explore_history
+from core.albums import create_album\nfrom core.historical_explorer import explore_history\nfrom core.media import create_media
 from core.records import create_memory
 from core.relationships import create_relationship
 from core.source_links import create_source_link
@@ -68,4 +68,35 @@ def test_historical_explorer_preserves_epistemic_distinction_and_contradictions(
     )
 
     assert {r["epistemic_status"] for r in result["records"]} == {"reported", "documented"}
-    assert result["contradictions"][0]["relationship_type"] == "contradicts"
+    assert result["contradictions"][0]["type"] == "contradicts"
+
+
+
+def test_historical_explorer_surfaces_place_time_albums_and_their_media():
+    place = "moh:place:johannesburg"
+    album = create_album(
+        album_id="moh:album:jhb-1980s",
+        title="Johannesburg Childhood",
+        contributor_id="person:1",
+    )
+    album["places"] = [place]
+    album["time"] = {"type": "period", "start": "1980", "end": "1989"}
+    photo = create_media(
+        media_id="moh:media:photo-1984",
+        media_type="image",
+        content_hash="abcdef12",
+        contributor_id="person:1",
+    )
+    album["items"] = [photo["id"]]
+
+    result = explore_history(
+        [], [], [], [],
+        exploration_id="moh:historical-exploration:jhb-1980s",
+        place_id=place,
+        time={"type": "range", "start": "1980", "end": "1989"},
+        albums=[album],
+        media=[photo],
+    )
+
+    assert [item["id"] for item in result["albums"]] == [album["id"]]
+    assert [item["id"] for item in result["media"]] == [photo["id"]]
