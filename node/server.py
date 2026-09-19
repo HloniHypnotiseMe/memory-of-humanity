@@ -17,11 +17,12 @@ class MemoryNode:
         self.name = name
 
     def discovery(self) -> dict:
+        record_types = sorted({record.get("record_type") for record in self.store.get_all("records") if record.get("record_type")})
         return create_discovery(
             instance_id=self.instance_id,
             name=self.name,
             current_cursor=self.store.current_cursor(),
-            record_types=[],
+            record_types=record_types,
             visibility=["public"],
             endpoints=[
                 {"rel": "discovery", "method": "GET", "path": "/federation/discovery"},
