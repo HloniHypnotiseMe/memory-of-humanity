@@ -34,7 +34,17 @@
         "since_cursor": {"type": "string", "pattern": "^[0-9]+$"},
         "limit": {"type": "integer", "minimum": 1, "maximum": 1000},
         "visibility": {"type": "array", "items": {"type": "string", "enum": ["public", "private", "community", "trusted_custodian", "sealed"]}},
-        "known_ids": {"type": "array", "items": {"type": "string", "pattern": "^moh:"}}
+        "known_ids": {"type": "array", "items": {"type": "string", "pattern": "^moh:"}},
+        "auth": {
+          "type": "object",
+          "required": ["method", "nonce", "mac"],
+          "properties": {
+            "method": {"const": "hmac-sha256"},
+            "nonce": {"type": "string", "minLength": 1},
+            "mac": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },
