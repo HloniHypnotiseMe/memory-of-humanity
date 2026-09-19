@@ -4,9 +4,32 @@
 <body>
 <header><div><div class="eyebrow">MEMORY OF HUMANITY</div><h1>Remember what humanity remembers.</h1><p>A living, federated memory layer for people, families, communities, places, stories, artefacts and knowledge.</p></div><button id="refresh">Refresh</button></header>
 <main>
-<section class="card composer"><h2>Add a memory</h2><div class="grid"><label>Contributor ID<input id="contributor" value="moh:person:local"></label><label>Memory type<select id="recordType"><option value="personal_memory">Personal memory</option><option value="oral_history">Oral history</option><option value="story">Story</option><option value="cultural_practice">Cultural practice</option><option value="collective_memory">Collective memory</option><option value="place_memory">Place memory</option><option value="how_to">How-to knowledge</option></select></label><label>Epistemic status<select id="status"><option value="remembered">Remembered</option><option value="reported">Reported</option><option value="traditional">Traditional</option><option value="observed">Observed</option><option value="documented">Documented</option><option value="uncertain">Uncertain</option></select></label></div><textarea id="memory" placeholder="Tell us what is remembered. Keep the voice and uncertainty intact."></textarea><button id="save">Preserve memory</button><span id="saveState"></span></section>
-<section class="card"><div class="row"><div><h2>Memory search</h2><p class="muted">Search the original records. AI interpretation never replaces them.</p></div><input id="search" placeholder="Search memories..."></div><div id="results" class="results"></div></section>
-<section class="card"><div class="row"><div><h2>Memory Albums</h2><p class="muted">Albums keep the album itself as a cultural object.</p></div><button id="albumsRefresh">Load albums</button></div><div id="albums" class="results"></div></section>
-<section class="card"><div class="row"><div><h2>Federation</h2><p class="muted">This node can discover peers and exchange cursor-based changes.</p></div><button id="discover">Inspect node</button></div><pre id="federation">Ready.</pre></section>
+<section class="card composer"><h2>Preserve a memory</h2><p class="muted">Keep the contributor's voice, context and uncertainty intact.</p>
+<div class="grid">
+<label>Contributor ID<input id="contributor" value="moh:person:local"></label>
+<label>Memory type<select id="recordType"><option value="personal_memory">Personal memory</option><option value="oral_history">Oral history</option><option value="story">Story</option><option value="cultural_practice">Cultural practice</option><option value="collective_memory">Collective memory</option><option value="place_memory">Place memory</option><option value="artefact">Artefact</option><option value="how_to">How-to knowledge</option></select></label>
+<label>Epistemic status<select id="status"><option value="remembered">Remembered</option><option value="reported">Reported</option><option value="traditional">Traditional</option><option value="observed">Observed</option><option value="documented">Documented</option><option value="evidenced">Evidenced</option><option value="uncertain">Uncertain</option></select></label>
+<label>Place ID (optional)<input id="placeId" placeholder="moh:place:johannesburg"></label>
+<label>Time start (optional)<input id="timeStart" placeholder="1980"></label>
+<label>Time end (optional)<input id="timeEnd" placeholder="1989"></label>
+<label>Visibility<select id="visibility"><option value="public">Public</option><option value="private">Private</option><option value="community">Community</option><option value="trusted_custodian">Trusted custodian</option></select></label>
+</div>
+<textarea id="memory" placeholder="Tell us what is remembered."></textarea><button id="save">Preserve memory</button><span id="saveState"></span></section>
+
+<section class="card"><h2>Memory search</h2><p class="muted">Public records are searchable here. AI interpretation never replaces the original record.</p><input id="search" placeholder="Search memories..."><div id="results" class="results"></div></section>
+
+<section class="card"><div class="row"><div><h2>Memory Albums</h2><p class="muted">An album is itself a cultural object.</p></div><button id="albumsRefresh">Load albums</button></div>
+<div class="grid album-form"><label>Album title<input id="albumTitle" placeholder="Family memories, 1980s Johannesburg"></label><label>Album description<input id="albumDescription" placeholder="What this album preserves"></label><label>Album place ID<input id="albumPlace" placeholder="moh:place:johannesburg"></label></div>
+<button id="albumCreate">Create album</button><span id="albumState"></span><div id="albums" class="results"></div><div id="albumExplorer" class="explorer"></div></section>
+
+<section class="card"><h2>Show me the memories of this place.</h2><p class="muted">Build a time-layered view across memories, albums, photographs, media, newspapers and disagreements.</p>
+<div class="row"><input id="historyPlace" placeholder="moh:place:johannesburg"><div class="range"><input id="historyStart" placeholder="1980"><input id="historyEnd" placeholder="1989"></div><button id="historyLoad">Explore place</button></div>
+<div id="history" class="history"></div></section>
+
+<section class="card"><h2>Preserve media</h2><p class="muted">Binary media is content-addressed and kept separate from its provenance metadata.</p>
+<div class="grid"><label>Media type<select id="mediaType"><option value="image">Image</option><option value="audio">Audio</option><option value="video">Video</option><option value="document">Document</option><option value="scan">Scan</option><option value="map">Map</option><option value="diagram">Diagram</option></select></label><label>File<input id="mediaFile" type="file"></label></div>
+<button id="mediaUpload">Preserve media</button><span id="mediaState"></span></section>
+
+<section class="card"><div class="row"><div><h2>Federation</h2><p class="muted">Independent nodes can discover one another and exchange cursor-based changes.</p></div><button id="discover">Inspect node</button></div><pre id="federation">Ready.</pre></section>
 </main><footer>Memory ≠ Fact · AI ≠ Authority · Disagreement = Data · Revision ≠ Deletion · Provenance Travels</footer>
 <script src="/app.js"></script></body></html>
