@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Federation Envelope",
+  "type": "object",
+  "required": ["protocol", "envelope_id", "instance_id", "records"],
+  "properties": {
+    "protocol": {"type": "string", "const": "memory-of-humanity"},
+    "version": {"type": "string"},
+    "envelope_id": {"type": "string", "pattern": "^moh:envelope:[A-Za-z0-9._:-]+$"},
+    "instance_id": {"type": "string", "pattern": "^moh:instance:[A-Za-z0-9._:-]+$"},
+    "created_at": {"type": ["string", "null"], "format": "date-time"},
+    "records": {"type": "array", "items": {"type": "object"}},
+    "tombstones": {"type": "array", "items": {"type": "object"}},
+    "signatures": {"type": "array", "items": {"type": "object"}}
+  },
+  "additionalProperties": false
+}
