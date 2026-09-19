@@ -96,3 +96,17 @@ Federation discovery is decentralized. An instance can publish a machine-readabl
 Incremental synchronization is cursor-based and transport-agnostic. A peer asks an instance for changes after its last successfully processed cursor. The response contains only the change envelopes in that window, plus a next cursor and a has_more signal. Tombstones are ordinary sync changes so withdrawals propagate without pretending the original record never existed.
 
 The cursor is owned by the source instance. It is not a global clock and does not replace provenance timestamps.
+
+
+## Reference node
+
+The reference implementation includes a small dependency-free Python node using SQLite and the standard-library HTTP server. It exposes:
+
+- `GET /health`
+- `GET /federation/discovery`
+- `GET /records`
+- `POST /federation/publish`
+- `POST /federation/sync`
+- `POST /federation/import`
+
+The node is deliberately replaceable. SQLite is local implementation storage, while protocol IDs, provenance, revisions, permissions and federation contracts remain portable.
