@@ -3,7 +3,7 @@
   "$id": "https://memory-of-humanity.org/protocol/historical-exploration.schema.json",
   "title": "Memory of Humanity Historical Exploration",
   "type": "object",
-  "required": ["id", "place_id", "records"],
+  "required": ["id", "place_id", "records", "sources", "source_links", "relationships", "contradictions", "graph", "timeline"],
   "properties": {
     "id": {"type": "string", "pattern": "^moh:historical-exploration:[A-Za-z0-9._:-]+$"},
     "place_id": {"type": "string", "pattern": "^moh:place:"},
@@ -13,6 +13,7 @@
     "source_links": {"type": "array", "items": {"type": "object"}},
     "relationships": {"type": "array", "items": {"type": "object"}},
     "contradictions": {"type": "array", "items": {"type": "object"}},
+    "graph": {"type": "object"},
     "timeline": {"type": "object"},
     "limit": {"type": "integer", "minimum": 1, "maximum": 1000}
   },
