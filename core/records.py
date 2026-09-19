@@ -44,12 +44,27 @@ def validate_record(record: dict[str, Any]) -> None:
     previous = revision.get("previous")
     if previous is not None and (not isinstance(previous, str) or not previous.startswith("moh:")):
         raise ValueError("revision.previous must be a moh: identifier or null")
+    if "people" in record and not isinstance(record["people"], list):
+        raise ValueError("people must be a list")
+    if "place_id" in record and record["place_id"] is not None and not str(record["place_id"]).startswith("moh:place:"):
+        raise ValueError("place_id must be a moh:place: identifier or null")
+    if "time" in record and record["time"] is not None and not isinstance(record["time"], dict):
+        raise ValueError("time must be an object or null")
+    if "media" in record and not isinstance(record["media"], list):
+        raise ValueError("media must be a list")
+    if "permissions" in record and record["permissions"] is not None and not isinstance(record["permissions"], dict):
+        raise ValueError("permissions must be an object or null")
 
 
 def create_memory(*, record_id: str, contributor_id: str, text: str,
                   record_type: str = "personal_memory",
                   epistemic_status: str = "remembered",
-                  created_at: str | None = None) -> dict[str, Any]:
+                  created_at: str | None = None,
+                  place_id: str | None = None,
+                  time: dict[str, Any] | None = None,
+                  people: list[str] | None = None,
+                  media: list[str | dict[str, Any]] | None = None,
+                  permissions: dict[str, Any] | None = None) -> dict[str, Any]:
     now = created_at or datetime.now(timezone.utc).isoformat()
     record = {
         "id": record_id,
@@ -58,6 +73,11 @@ def create_memory(*, record_id: str, contributor_id: str, text: str,
         "provenance": {"contributor_id": contributor_id, "created_at": now},
         "epistemic_status": epistemic_status,
         "revision": {"version": 1, "previous": None, "change_type": "original"},
+        "place_id": place_id,
+        "time": time,
+        "people": people or [],
+        "media": media or [],
+        "permissions": permissions,
     }
     validate_record(record)
     return record
