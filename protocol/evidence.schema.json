@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memory-of-humanity.org/protocol/evidence.schema.json",
+  "title": "Evidence Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "record_id", "evidence_type", "description"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:evidence:[A-Za-z0-9._:-]+$"},
+    "record_id": {"type": "string", "pattern": "^moh:"},
+    "evidence_type": {"type": "string", "enum": ["document", "photograph", "recording", "artefact", "publication", "testimony", "measurement", "external_record", "other"]},
+    "description": {"type": "string", "minLength": 1},
+    "source": {"type": "string"},
+    "location": {"type": "string"},
+    "provenance": {"$ref": "provenance.schema.json"},
+    "assessment": {"type": "string", "enum": ["unassessed", "supports", "contradicts", "partial", "inconclusive"]}
+  }
+}
