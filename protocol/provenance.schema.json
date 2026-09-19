@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memory-of-humanity.org/protocol/provenance.schema.json",
+  "title": "Memory Provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contributor_id", "created_at"],
+  "properties": {
+    "contributor_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "source": {"type": "string", "minLength": 1},
+    "source_type": {"type": "string", "enum": ["person", "document", "photograph", "recording", "archive", "publication", "other"]},
+    "derived_from": {"type": "array", "items": {"type": "string", "pattern": "^moh:"}},
+    "transformation": {"type": "string"},
+    "verified_by": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  }
+}
