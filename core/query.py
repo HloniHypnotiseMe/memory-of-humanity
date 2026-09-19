@@ -16,12 +16,19 @@ def validate_query(query: dict[str, Any]) -> None:
         raise ValueError("unsupported query_type")
     if query.get("limit") is not None and not 1 <= query["limit"] <= 1000:
         raise ValueError("limit must be between 1 and 1000")
+    if query.get("record_types") is not None and not isinstance(query["record_types"], list):
+        raise ValueError("record_types must be a list")
+    if query.get("relationship_types") is not None and not isinstance(query["relationship_types"], list):
+        raise ValueError("relationship_types must be a list")
 
 
 def create_query(*, query_id: str, query_type: str,
                  text: str | None = None,
                  entity_id: str | None = None,
                  place_id: str | None = None,
+                 time: dict[str, Any] | None = None,
+                 record_types: list[str] | None = None,
+                 relationship_types: list[str] | None = None,
                  limit: int = 100) -> dict[str, Any]:
     query = {
         "query_id": query_id,
@@ -29,9 +36,9 @@ def create_query(*, query_id: str, query_type: str,
         "text": text,
         "entity_id": entity_id,
         "place_id": place_id,
-        "time": None,
-        "record_types": [],
-        "relationship_types": [],
+        "time": time,
+        "record_types": record_types or [],
+        "relationship_types": relationship_types or [],
         "limit": limit,
     }
     validate_query(query)
