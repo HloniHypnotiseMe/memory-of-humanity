@@ -131,7 +131,7 @@ def explore_history(
     selected_relationships = [
         edge for edge in relationship_list
         if edge.get("source") in selected_ids and edge.get("target") in selected_ids
-        and (not relationship_types or edge.get("relationship_type") in relationship_types)
+        and (not relationship_types or edge.get("type") in relationship_types)
     ]
     graph = {"nodes": [], "edges": [], "paths": []}
     if selected:
@@ -157,7 +157,7 @@ def explore_history(
 
     contradictions = [
         edge for edge in selected_relationships
-        if edge.get("relationship_type") == "contradicts"
+        if edge.get("type") == "contradicts"
     ]
     timeline_items = [
         {
