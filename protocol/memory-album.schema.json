@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Memory Album",
+  "type": "object",
+  "required": ["id", "title", "items", "provenance"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:album:[A-Za-z0-9._:-]+$"},
+    "title": {"type": "string", "minLength": 1},
+    "description": {"type": ["string", "null"]},
+    "items": {"type": "array", "items": {"type": "string", "pattern": "^moh:"}},
+    "people": {"type": "array", "items": {"type": "string", "pattern": "^moh:person:"}},
+    "places": {"type": "array", "items": {"type": "string", "pattern": "^moh:place:"}},
+    "time": {"type": ["object", "null"]},
+    "provenance": {"type": "object", "required": ["contributor_id"], "properties": {"contributor_id": {"type": "string"}}, "additionalProperties": true},
+    "permissions": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false
+}
