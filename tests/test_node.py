@@ -76,3 +76,33 @@ def test_configured_peer_registry_and_conflict_inspection(tmp_path):
     assert node.peers()[0]["instance_id"] == "moh:instance:b"
     assert node.conflicts() == []
     store.close()
+
+
+def test_demo_seed_creates_a_walkable_place_time_machine(tmp_path):
+    from node.demo import seed_demo
+    store = MemoryStore(tmp_path / "demo.db")
+    node = MemoryNode(store, instance_id="moh:instance:demo", name="Demo")
+    result = seed_demo(node)
+    assert result["seeded"] is True
+    assert result["records"] == 6
+    assert store.get("albums", "moh:album:demo-johannesburg-1980s") is not None
+    assert store.get("media", "moh:media:demo-photo") is not None
+    assert store.get("sources", "moh:source:demo-newspaper-1987") is not None
+    store.close()
+
+
+def test_public_memory_detail_exposes_provenance_and_relationships(tmp_path):
+    store = MemoryStore(tmp_path / "detail.db")
+    node = MemoryNode(store, instance_id="moh:instance:test", name="Test")
+    node.create_identity({"id": "moh:person:test", "kind": "person", "display_name": "Test"})
+    record = node.create_memory({
+        "id": "moh:memory:detail",
+        "contributor_id": "moh:person:test",
+        "text": "A remembered place.",
+        "place_id": "moh:place:johannesburg",
+        "time": {"type": "instant", "start": "1984", "precision": "year"},
+    })
+    detail = node.memory_detail(record["id"])
+    assert detail["record"]["id"] == record["id"]
+    assert detail["provenance_events"][0]["event_type"] == "created"
+    store.close()
