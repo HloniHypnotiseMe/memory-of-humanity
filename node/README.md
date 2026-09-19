@@ -52,3 +52,14 @@ The node is a protocol reference implementation, not a production internet servi
 
 
 If a shared secret is configured, outgoing sync requests use HMAC-SHA256 and the receiving node verifies the request before exporting its configured public changes. The secret is never returned by `GET /api/peers`. Keep it outside source control and use HTTPS for real deployments.
+
+
+## Demonstration corpus
+
+Run the reference node with:
+
+```bash
+python -m node.cli --seed-demo
+```
+
+This seeds a synthetic Johannesburg place/time corpus containing memories, an album, media, a synthetic newspaper source, provenance, and a deliberate disagreement. The corpus is explicitly labelled **demonstration material, not historical evidence**. It exists to make the protocol and browser experience immediately inspectable without fabricating real history.
