@@ -51,3 +51,28 @@ def test_peer_sync_transfers_changes(tmp_path):
     assert "moh:memory:peer" in result["accepted"]
     assert store_a.get("records","moh:memory:peer")["content"]["text"]=="Remembered by B."
     store_a.close(); store_b.close()
+
+
+def test_revision_withdrawal_and_provenance_are_durable(tmp_path):
+    store = MemoryStore(tmp_path / "memory.db")
+    node = MemoryNode(store, instance_id="moh:instance:test", name="Test")
+    node.create_identity({"id": "moh:person:test", "kind": "person", "display_name": "Test"})
+    record = node.create_memory({"id": "moh:memory:durable", "contributor_id": "moh:person:test", "text": "First."})
+    node.revise_memory(record["id"], {"text": "Second."})
+    node.withdraw_memory(record["id"], {"issued_by": "moh:person:test", "reason": "withdrawn"})
+    events = store.get_all("provenance_events")
+    assert any(e["event_type"] == "created" and e["record_id"] == record["id"] for e in events)
+    assert any(e["event_type"] == "revised" and e["record_id"] == record["id"] for e in events)
+    assert any(e["event_type"] == "withdrawn" and e["record_id"] == record["id"] for e in events)
+    assert store.get("tombstones", record["id"]) is not None
+    store.close()
+
+
+def test_configured_peer_registry_and_conflict_inspection(tmp_path):
+    store = MemoryStore(tmp_path / "memory.db")
+    node = MemoryNode(store, instance_id="moh:instance:a", name="A")
+    peer = node.add_peer({"id": "moh:peer:b", "instance_id": "moh:instance:b", "url": "http://127.0.0.1:8788", "name": "B"})
+    assert peer["id"] == "moh:peer:b"
+    assert node.peers()[0]["instance_id"] == "moh:instance:b"
+    assert node.conflicts() == []
+    store.close()
