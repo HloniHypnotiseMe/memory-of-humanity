@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Annotation",
+  "type": "object",
+  "required": ["id", "target", "annotator_id", "annotation_type", "content"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:annotation:[A-Za-z0-9._:-]+$"},
+    "target": {"type": "string", "pattern": "^moh:"},
+    "annotator_id": {"type": "string", "pattern": "^moh:"},
+    "annotation_type": {"type": "string", "enum": ["correction", "context", "translation", "transcription", "interpretation", "evidence_link", "community_note", "ai_interpretation"]},
+    "content": {"type": "string", "minLength": 1},
+    "created_at": {"type": ["string", "null"]},
+    "supports": {"type": ["string", "null"], "pattern": "^moh:"},
+    "contradicts": {"type": ["string", "null"], "pattern": "^moh:"}
+  },
+  "additionalProperties": false
+}
