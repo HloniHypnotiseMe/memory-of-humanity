@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/graph-explanation.schema.json",
+  "title":"Memory of Humanity Graph Explanation",
+  "type":"object",
+  "required":["start","target","found","paths"],
+  "properties":{
+    "start":{"type":"string"},
+    "target":{"type":"string"},
+    "found":{"type":"boolean"},
+    "paths":{"type":"array","items":{"type":"object","required":["nodes","edges","provenance"],"properties":{
+      "nodes":{"type":"array","items":{"type":"string"}},
+      "edges":{"type":"array","items":{"type":"string"}},
+      "provenance":{"type":"array","items":{"type":"string"}}
+    },"additionalProperties":false}},
+    "notes":{"type":"array","items":{"type":"string"}}
+  },
+  "additionalProperties":false
+}
