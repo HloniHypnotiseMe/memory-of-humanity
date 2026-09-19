@@ -24,7 +24,9 @@ Provides structured representations for people, places, events, objects, stories
 Optional assistance layer. AI outputs are derived records or annotations with their own provenance. They do not overwrite source records.
 
 ### Federation
-Allows independently operated instances to exchange records while retaining stable identifiers, provenance, revisions and permissions.
+Allows independently operated instances to exchange records and historical objects while retaining stable identifiers, provenance, revisions and permissions. Federation envelopes can carry memories, albums, media, sources, relationships, source links and tombstones.
+
+The federated historical explorer composes those envelopes into a place/time exploration. It preserves source-instance attribution, applies visibility controls, honours tombstones, deduplicates identical replicas and exposes divergent stable-ID content as conflict data.
 
 ### Interfaces
 Web, API, search, maps, timelines and other interfaces consume protocol records. No interface should become the canonical owner of the underlying memory.
@@ -44,6 +46,22 @@ The protocol should express relationships such as:
 - invention → predecessor_of → invention
 - record → supported_by → evidence
 - record → contradicts → record
+
+## Historical exploration
+
+A place/time query can combine:
+
+- personal and collective memories
+- oral and cultural stories
+- historical/documentary evidence
+- newspapers and archive sources
+- Memory Albums
+- photographs, audio and other media
+- artefacts and technologies
+- disagreements and contradictions
+- timelines and graph connections
+
+The distinction between these layers is preserved. An album remains an album; a newspaper remains a source; a remembered story remains a remembered story.
 
 ## Time
 
