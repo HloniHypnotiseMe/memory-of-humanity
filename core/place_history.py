@@ -106,29 +106,29 @@ def build_place_history(
     for record in record_list:
         year = _year(record.get("time"))
         key = _period(year)
-        layers[key][_layer_for_record(record)].append(record["id"])
+        add(key, _layer_for_record(record), record["id"])
         for media_id in _media_ids(record):
-            layers[key]["media"].append(media_id)
+            add(key, "media", media_id)
             media_item = media_by_id.get(media_id)
             if media_item and media_item.get("media_type") == "image":
-                layers[key]["photographs"].append(media_id)
+                add(key, "photographs", media_id)
 
     for album in album_list:
         key = _period(_year(album.get("time")))
-        layers[key]["albums"].append(album["id"])
+        add(key, "albums", album["id"])
         for item_id in album.get("items", []):
             if not isinstance(item_id, str) or not item_id.startswith("moh:media:"):
                 continue
-            layers[key]["media"].append(item_id)
+            add(key, "media", item_id)
             media_item = media_by_id.get(item_id)
             if media_item and media_item.get("media_type") == "image":
-                layers[key]["photographs"].append(item_id)
+                add(key, "photographs", item_id)
 
     for media_item in media_list:
         key = _period(_year_from_media(media_item))
-        layers[key]["media"].append(media_item["id"])
+        add(key, "media", media_item["id"])
         if media_item.get("media_type") == "image":
-            layers[key]["photographs"].append(media_item["id"])
+            add(key, "photographs", media_item["id"])
 
     for source in source_list:
         if source.get("source_type") != "newspaper":
@@ -140,7 +140,7 @@ def build_place_history(
             key = "unknown"
         else:
             key = _period(year)
-        layers[key]["newspapers"].append(source["id"])
+        add(key, "newspapers", source["id"])
 
     for relationship in relationship_list:
         if relationship.get("type") != "contradicts":
@@ -155,7 +155,7 @@ def build_place_history(
                         break
             if key != "unknown":
                 break
-        layers[key]["disagreements"].append(relationship["id"])
+        add(key, "disagreements", relationship["id"])
 
     ordered = []
     for period in sorted(layers, key=lambda value: (value == "unknown", value)):
