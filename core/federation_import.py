@@ -44,7 +44,7 @@ def _merge_object(store: dict[str, dict[str, Any]], value: dict[str, Any], sourc
         accepted.append(object_id)
         return
 
-    if content_hash(current) == content_hash(incoming):
+    if current.get("_federation", {}).get("content_hash") == content_hash(value):
         unchanged.append(object_id)
         return
 
