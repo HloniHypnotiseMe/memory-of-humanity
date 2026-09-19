@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/exploration-result.schema.json",
+  "title":"Memory of Humanity Exploration Result",
+  "type":"object",
+  "required":["query","records","graph","sources"],
+  "properties":{
+    "query":{"type":"object"},
+    "records":{"type":"array"},
+    "graph":{"type":"object"},
+    "sources":{"type":"array"}
+  },
+  "additionalProperties":false
+}
