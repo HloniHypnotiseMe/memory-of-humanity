@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Iterable
 
-from .graph import traverse
+from .albums import validate_album\nfrom .graph import traverse\nfrom .media import validate_media
 from .records import validate_record
 from .source_links import validate_source_link
 
@@ -80,7 +80,7 @@ def _matches(record: dict[str, Any], place_id: str, time_filter: dict[str, Any] 
     return actual_start <= (wanted_end or wanted_start) and (actual_end or actual_start) >= wanted_start
 
 
-def _source_matches(source: dict[str, Any], place_id: str, time_filter: dict[str, Any] | None) -> bool:
+def _album_matches(album: dict[str, Any], place_id: str, time_filter: dict[str, Any] | None) -> bool:\n    if place_id not in set(album.get("places", [])):\n        return False\n    if time_filter is None:\n        return True\n    wanted_start, wanted_end = _time_bounds(time_filter)\n    actual_start, actual_end = _time_bounds(album.get("time"))\n    if wanted_start is None or actual_start is None:\n        return False\n    return actual_start <= (wanted_end or wanted_start) and (actual_end or actual_start) >= wanted_start\n\n\ndef _source_matches(source: dict[str, Any], place_id: str, time_filter: dict[str, Any] | None) -> bool:
     place = source.get("place")
     if place and place_id not in {place}:
         return False
