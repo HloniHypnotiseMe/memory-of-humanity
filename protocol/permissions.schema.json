@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Permissions",
+  "type": "object",
+  "required": ["visibility"],
+  "properties": {
+    "visibility": {"type": "string", "enum": ["public", "private", "community", "trusted_custodian", "sealed"]},
+    "allow_annotation": {"type": "boolean"},
+    "allow_derivatives": {"type": "boolean"},
+    "allow_federation": {"type": "boolean"},
+    "allow_export": {"type": "boolean"},
+    "sealed_until": {"type": ["string", "null"], "format": "date-time"},
+    "retention": {"type": ["string", "null"]},
+    "notes": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
