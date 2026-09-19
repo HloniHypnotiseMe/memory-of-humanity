@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Context Reference",
+  "type": "object",
+  "required": ["id", "context_type", "label"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:(person|place|event):[A-Za-z0-9._:-]+$"},
+    "context_type": {"type": "string", "enum": ["person", "place", "event"]},
+    "label": {"type": "string", "minLength": 1},
+    "description": {"type": ["string", "null"]},
+    "time": {"type": ["object", "null"]},
+    "location": {"type": ["object", "null"]},
+    "aliases": {"type": "array", "items": {"type": "string"}},
+    "uncertainty": {"type": ["string", "null"]},
+    "privacy": {"type": ["object", "null"]}
+  },
+  "additionalProperties": false
+}
