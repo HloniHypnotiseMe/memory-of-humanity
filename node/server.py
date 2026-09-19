@@ -78,7 +78,7 @@ class MemoryNode:
             for item in envelope.get(c,[]): self.store.upsert(c,item)
         return envelope
     def export_change(self,*,envelope_id:str,records:list[dict]|None=None,**collections)->int:
-        envelope=create_envelope(envelope_id=envelope_id,instance_id=self.instance_id,records=records or [],**{k:collections.get(k,[]) for k in COLLECTIONS if k!="tombstones"},tombstones=collections.get("tombstones",[])); return self.store.add_change(envelope)
+        envelope=create_envelope(envelope_id=envelope_id,instance_id=self.instance_id,records=records or [],**{k:collections.get(k,[]) for k in COLLECTIONS if k not in {"records","tombstones"}},tombstones=collections.get("tombstones",[])); return self.store.add_change(envelope)
     def sync(self,request:dict)->dict:
         changes=self.store.changes_after(int(request["since_cursor"]),int(request.get("limit",100))); return incremental_sync(discovery=self.discovery(),request=request,changes=changes)
     def import_response(self,response:dict)->dict:
