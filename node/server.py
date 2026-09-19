@@ -118,11 +118,12 @@ class MemoryNode:
         if not self.store.get("identities",contributor): raise ValueError("contributor identity must exist before uploading media")
         raw=base64.b64decode(body["data_base64"],validate=True)
         content_hash=body.get("content_hash") or hashlib.sha256(raw).hexdigest()
-        self.media.put(raw,content_hash)
         value=create_media(media_id=body.get("id") or _id("media"),media_type=body["media_type"],content_hash=content_hash,contributor_id=contributor,source_uri=body.get("source_uri"))
         for key in ("mime_type","captured_at","location","derivative_of","rights"):
             if key in body: value[key]=body[key]
-        validate_media(value); self.store.upsert("media",value); self.export_change(envelope_id=_id("envelope"),media=[value]); return value
+        validate_media(value)
+        self.media.put(raw,content_hash)
+        self.store.upsert("media",value); self.export_change(envelope_id=_id("envelope"),media=[value]); return value
 
     def media_bytes(self,media_id:str)->tuple[dict,bytes]:
         value=self.store.get("media",media_id)
@@ -132,9 +133,11 @@ class MemoryNode:
     def explore_album(self,album_id:str)->dict:
         album=self.store.get("albums",album_id)
         if not album: raise ValueError("album not found")
+        if not _publicly_visible(album): raise ValueError("album not publicly available")
         return explore_album(album,records=self.store.get_all("records"),media=self.store.get_all("media"),relationships=self.store.get_all("relationships"),lineage=(),exploration_id=_id("album-exploration"))
 
     def create_album(self,body:dict)->dict:
+        if not self.store.get("identities",body["contributor_id"]): raise ValueError("contributor identity must exist before creating an album")
         value=create_album(album_id=body.get("id") or _id("album"),title=body["title"],contributor_id=body["contributor_id"]); value.update({k:body[k] for k in ("description","items","people","places","time","permissions") if k in body}); validate_album(value); self.store.upsert("albums",value); self.export_change(envelope_id=_id("envelope"),albums=[value]); return value
 
 class Handler(BaseHTTPRequestHandler):
