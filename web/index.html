@@ -30,6 +30,9 @@
 <div class="grid"><label>Media type<select id="mediaType"><option value="image">Image</option><option value="audio">Audio</option><option value="video">Video</option><option value="document">Document</option><option value="scan">Scan</option><option value="map">Map</option><option value="diagram">Diagram</option></select></label><label>File<input id="mediaFile" type="file"></label></div>
 <button id="mediaUpload">Preserve media</button><span id="mediaState"></span></section>
 
-<section class="card"><div class="row"><div><h2>Federation</h2><p class="muted">Independent nodes can discover one another and exchange cursor-based changes.</p></div><button id="discover">Inspect node</button></div><div class="row"><input id="peerUrl" placeholder="Peer URL, e.g. http://127.0.0.1:8788"><button id="syncPeer">Sync peer</button></div><pre id="federation">Ready.</pre></section>
+<section class="card"><div class="row"><div><h2>Federation</h2><p class="muted">Independent nodes discover one another, then exchange only the public changes permitted by the configured peer relationship.</p></div><button id="discover">Inspect node</button></div>
+<div class="grid"><label>Peer name<input id="peerName" placeholder="Johannesburg family archive"></label><label>Peer instance ID<input id="peerInstance" placeholder="moh:instance:archive"></label><label>Peer URL<input id="peerUrl" placeholder="http://127.0.0.1:8788"></label></div>
+<div class="row"><button id="addPeer">Trust / configure peer</button><button id="syncPeer">Sync configured peer</button><button id="conflictsLoad">Inspect conflicts</button></div>
+<div id="peerList" class="results"></div><pre id="federation">Ready.</pre></section>
 </main><footer>Memory ≠ Fact · AI ≠ Authority · Disagreement = Data · Revision ≠ Deletion · Provenance Travels</footer>
 <script src="/app.js"></script></body></html>
