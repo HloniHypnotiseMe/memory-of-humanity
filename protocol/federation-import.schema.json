@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://memory-of-humanity.org/protocol/federation-import.schema.json",
+  "title":"Memory of Humanity Federation Import Result",
+  "type":"object",
+  "required":["source_instance","applied_cursor","accepted","unchanged","conflicts","tombstones","provenance_events"],
+  "properties":{
+    "source_instance":{"type":"string","pattern":"^moh:instance:"},
+    "applied_cursor":{"type":"string","pattern":"^[0-9]+$"},
+    "accepted":{"type":"array","items":{"type":"string","pattern":"^moh:"}},
+    "unchanged":{"type":"array","items":{"type":"string","pattern":"^moh:"}},
+    "conflicts":{"type":"array","items":{"type":"object"}},
+    "tombstones":{"type":"array","items":{"type":"string","pattern":"^moh:"}},
+    "provenance_events":{"type":"array","items":{"type":"object"}}
+  },
+  "additionalProperties":false
+}
