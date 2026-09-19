@@ -9,8 +9,28 @@
     "place_id":{"type":"string","pattern":"^moh:place:"},
     "start":{"type":["string","null"]},
     "end":{"type":["string","null"]},
-    "layers":{"type":"array","items":{"type":"object"}},
-    "totals":{"type":"object"}
+    "layers":{
+      "type":"array",
+      "items":{
+        "type":"object",
+        "required":["period","layers"],
+        "properties":{
+          "period":{"type":"string"},
+          "layers":{
+            "type":"object",
+            "additionalProperties":{
+              "type":"array",
+              "items":{"type":"string","pattern":"^moh:"}
+            }
+          }
+        },
+        "additionalProperties":false
+      }
+    },
+    "totals":{
+      "type":"object",
+      "additionalProperties":{"type":"integer","minimum":0}
+    }
   },
   "additionalProperties":false
 }
