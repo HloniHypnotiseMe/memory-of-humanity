@@ -8,51 +8,15 @@
   "properties": {
     "id": {"type": "string", "pattern": "^moh:[A-Za-z0-9._:-]+$"},
     "record_type": {"type": "string", "enum": ["personal_memory", "oral_history", "story", "cultural_practice", "collective_memory", "historical_evidence", "place_memory", "artefact", "how_to", "ai_interpretation"]},
-    "content": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["text"],
-      "properties": {"text": {"type": "string", "minLength": 1}, "language": {"type": "string", "minLength": 2}}
-    },
-    "provenance": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["contributor_id", "created_at"],
-      "properties": {
-        "contributor_id": {"type": "string", "minLength": 1},
-        "created_at": {"type": "string", "format": "date-time"},
-        "source": {"type": "string"},
-        "derived_from": {"type": "array", "items": {"type": "string"}},
-        "transformation": {"type": "string"}
-      }
-    },
+    "content": {"type": "object", "additionalProperties": false, "required": ["text"], "properties": {"text": {"type": "string", "minLength": 1}, "language": {"type": "string", "minLength": 2}}},
+    "provenance": {"type": "object", "additionalProperties": false, "required": ["contributor_id", "created_at"], "properties": {"contributor_id": {"type": "string", "minLength": 1}, "created_at": {"type": "string", "format": "date-time"}, "source": {"type": "string"}, "derived_from": {"type": "array", "items": {"type": "string"}}, "transformation": {"type": "string"}}},
     "epistemic_status": {"type": "string", "enum": ["remembered", "reported", "traditional", "observed", "documented", "evidenced", "interpreted", "uncertain"]},
-    "revision": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["version", "previous"],
-      "properties": {
-        "version": {"type": "integer", "minimum": 1},
-        "previous": {"type": ["string", "null"]},
-        "change_type": {"type": "string", "enum": ["original", "correction", "annotation", "translation", "transcription", "interpretation"]}
-      }
-    },
-    "relationships": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["type", "target"],
-        "properties": {"type": {"type": "string", "minLength": 1}, "target": {"type": "string", "pattern": "^moh:[A-Za-z0-9._:-]+$"}}
-      }
-    },
-    "permissions": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "visibility": {"type": "string", "enum": ["public", "community", "restricted", "sealed"]},
-        "sealed_until": {"type": ["string", "null"], "format": "date-time"}
-      }
-    }
+    "revision": {"type": "object", "additionalProperties": false, "required": ["version", "previous"], "properties": {"version": {"type": "integer", "minimum": 1}, "previous": {"type": ["string", "null"]}, "change_type": {"type": "string", "enum": ["original", "correction", "annotation", "translation", "transcription", "interpretation"]}}},
+    "people": {"type": "array", "items": {"type": "string", "pattern": "^moh:person:"}},
+    "place_id": {"type": ["string", "null"], "pattern": "^moh:place:"},
+    "time": {"type": ["object", "null"]},
+    "media": {"type": "array", "items": {"oneOf": [{"type": "string", "pattern": "^moh:media:"}, {"type": "object"}]}},
+    "permissions": {"type": ["object", "null"]},
+    "relationships": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["type", "target"], "properties": {"type": {"type": "string", "minLength": 1}, "target": {"type": "string", "pattern": "^moh:[A-Za-z0-9._:-]+$"}}}}
   }
 }
