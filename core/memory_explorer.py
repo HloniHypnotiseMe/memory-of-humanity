@@ -5,6 +5,7 @@ from typing import Any, Iterable
 from .graph import traverse
 from .records import validate_record
 from .search import search_records
+from .source_links import validate_source_link
 
 
 def explore(
