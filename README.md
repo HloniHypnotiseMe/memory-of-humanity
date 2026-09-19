@@ -61,3 +61,14 @@ AI is an optional interpretation and indexing layer, not a prerequisite for pres
 ## License
 
 The project's open-source license and governance model will be selected explicitly as the protocol stabilizes.
+
+
+## Runnable reference node
+
+The repository now includes a dependency-free Python reference node under `node/`. It uses SQLite for local storage and exposes discovery, incremental sync, import reconciliation and publishing endpoints over a small HTTP server.
+
+Run:
+
+    python -m node.cli --port 8787
+
+The node is an implementation of the protocol, not the protocol itself. Storage can be replaced, and other implementations can interoperate through the protocol contracts.
