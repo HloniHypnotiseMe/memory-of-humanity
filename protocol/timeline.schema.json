@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Timeline View",
+  "type": "object",
+  "required": ["id", "subject_id", "items"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:timeline:[A-Za-z0-9._:-]+$"},
+    "subject_id": {"type": "string", "pattern": "^moh:"},
+    "start": {"type": ["string", "null"]},
+    "end": {"type": ["string", "null"]},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["record_id"],
+        "properties": {
+          "record_id": {"type": "string", "pattern": "^moh:"},
+          "time": {"type": ["object", "null"]},
+          "label": {"type": ["string", "null"]},
+          "relationship": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
