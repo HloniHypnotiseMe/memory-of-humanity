@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity How-To and Technology Archaeology Record",
+  "type": "object",
+  "required": ["id", "title", "knowledge_type", "provenance"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^moh:howto:[A-Za-z0-9._:-]+$"},
+    "title": {"type": "string", "minLength": 1},
+    "knowledge_type": {"type": "string", "enum": ["repair", "manufacturing", "craft", "agriculture", "construction", "engineering", "process", "recipe", "trade_practice", "technical_reference", "other"]},
+    "description": {"type": ["string", "null"]},
+    "steps": {"type": "array", "items": {"type": "string"}},
+    "materials": {"type": "array", "items": {"type": "string"}},
+    "tools": {"type": "array", "items": {"type": "string"}},
+    "technology_period": {"type": ["string", "null"]},
+    "sources": {"type": "array", "items": {"type": "string"}},
+    "intellectual_property": {"type": ["object", "null"]},
+    "safety_notes": {"type": "array", "items": {"type": "string"}},
+    "provenance": {"type": "object", "required": ["contributor_id"], "properties": {"contributor_id": {"type": "string"}}, "additionalProperties": true}
+  },
+  "additionalProperties": false
+}
