@@ -198,6 +198,7 @@ class Handler(BaseHTTPRequestHandler):
                 import urllib.request
                 from urllib.parse import urljoin
                 peer_url=body.pop("peer_url").rstrip("/")+"/"
+                if not (peer_url.startswith("http://") or peer_url.startswith("https://")): raise ValueError("peer_url must use http:// or https://")
                 def fetcher(method,endpoint,payload):
                     data=json.dumps(payload).encode() if payload is not None else None
                     req=urllib.request.Request(urljoin(peer_url,endpoint.lstrip("/")),data=data,method=method,headers={"Content-Type":"application/json"} if data else {})
