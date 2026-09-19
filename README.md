@@ -72,3 +72,25 @@ Run:
     python -m node.cli --port 8787
 
 The node is an implementation of the protocol, not the protocol itself. Storage can be replaced, and other implementations can interoperate through the protocol contracts.
+
+## Runnable memory node
+
+The reference implementation now includes a small local application on top of the protocol. It persists contributor identities and consent records locally, captures memories, creates Memory Albums, searches original records, exposes place-history exploration, and exposes federation discovery/sync endpoints.
+
+Run it with:
+
+    python -m node.cli --port 8787
+
+Open http://127.0.0.1:8787/ in a browser.
+
+### Local application API
+
+- `POST /api/identities` — create a local contributor identity
+- `POST /api/consents` — record consent scope/status
+- `POST /api/memories` — preserve a memory as a protocol record
+- `GET /api/search?q=...` — deterministic search over original records
+- `GET /api/albums` / `POST /api/albums` — Memory Albums
+- `GET /api/place-history?place_id=moh:place:...` — time-layered place exploration
+- `GET /api/discovery` — instance discovery metadata
+
+The local identity is a reference-node identity, not a production authentication system. A deployment that serves real communities must add appropriate authentication, authorization, consent UX, privacy controls, secure media storage, and governance.
