@@ -27,6 +27,21 @@ from .web import read_asset, query_params
 
 def _id(prefix: str) -> str: return f"moh:{prefix}:{uuid.uuid4().hex}"
 
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+def _provenance_event(*, event_type: str, actor_id: str, record_id: str,
+                      source_instance: str | None = None, details: dict | None = None) -> dict:
+    return {
+        "id": _id("provenance:event"),
+        "record_id": record_id,
+        "event_type": event_type,
+        "actor_id": actor_id,
+        "timestamp": _now(),
+        "source_instance": source_instance,
+        "details": details,
+    }
+
 def _publicly_visible(value: dict) -> bool:
     permissions = value.get("permissions")
     if not isinstance(permissions, dict):
@@ -81,6 +96,16 @@ class MemoryNode:
             if tombstone["record_id"] in result["tombstones"]:
                 self.store.upsert("tombstones",tombstone)
         self.store.set_meta("cursor:"+result["source_instance"],result["applied_cursor"])
+        for conflict in result.get("conflicts", []):
+            stored = dict(conflict)
+            stored["id"] = _id("federation:conflict")
+            self.store.upsert("federation_conflicts", stored)
+        for event in result.get("provenance_events", []):
+            event = dict(event)
+            event["id"] = _id("provenance:event")
+            self.store.upsert("provenance_events", event)
+        for object_id in result.get("accepted", []):
+            self.add_provenance_event(event_type="imported", actor_id=result["source_instance"], record_id=object_id, source_instance=result["source_instance"])
         return result
     def sync_peer(self,request:dict,fetcher)->dict:
         discovery=fetcher("GET","/federation/discovery",None)
@@ -88,6 +113,62 @@ class MemoryNode:
             raise ValueError("peer discovery identity mismatch")
         response=fetcher("POST","/federation/sync",request)
         return self.import_response(response)
+
+    def add_provenance_event(self, *, event_type: str, actor_id: str, record_id: str,
+                            source_instance: str | None = None, details: dict | None = None) -> dict:
+        event = _provenance_event(event_type=event_type, actor_id=actor_id, record_id=record_id,
+                                  source_instance=source_instance, details=details)
+        self.store.upsert("provenance_events", event)
+        return event
+
+    def peers(self) -> list[dict]:
+        return self.store.get_all("peers")
+
+    def conflicts(self) -> list[dict]:
+        return self.store.get_all("federation_conflicts")
+
+    def add_peer(self, body: dict) -> dict:
+        peer_id = body.get("id") or _id("peer")
+        instance_id = body["instance_id"]
+        url = body["url"].rstrip("/")
+        if not peer_id.startswith("moh:peer:"):
+            raise ValueError("peer id must start with moh:peer:")
+        if not instance_id.startswith("moh:instance:"):
+            raise ValueError("instance_id must start with moh:instance:")
+        if not (url.startswith("http://") or url.startswith("https://")):
+            raise ValueError("peer url must use http:// or https://")
+        value = {"id": peer_id, "instance_id": instance_id, "url": url,
+                 "name": body.get("name") or instance_id, "enabled": bool(body.get("enabled", True))}
+        self.store.upsert("peers", value)
+        return value
+
+    def sync_configured_peer(self, peer_id: str) -> dict:
+        peer = self.store.get("peers", peer_id)
+        if not peer or not peer.get("enabled"):
+            raise ValueError("configured peer not found or disabled")
+        peer_url = peer["url"].rstrip("/") + "/"
+        import urllib.request
+        from urllib.parse import urljoin
+
+        def fetcher(method, endpoint, payload):
+            data = json.dumps(payload).encode() if payload is not None else None
+            request = urllib.request.Request(
+                urljoin(peer_url, endpoint.lstrip("/")),
+                data=data, method=method,
+                headers={"Content-Type": "application/json"} if data else {},
+            )
+            with urllib.request.urlopen(request, timeout=10) as response:
+                return json.loads(response.read())
+
+        request = {
+            "request_id": _id("sync-request"),
+            "protocol": "memory-of-humanity",
+            "peer_instance_id": peer["instance_id"],
+            "since_cursor": self.store.get_meta("cursor:" + peer["instance_id"], "0") or "0",
+            "limit": 100, "visibility": ["public"], "known_ids": [],
+        }
+        result = self.sync_peer(request, fetcher)
+        return {"peer": peer, "request": request, "result": result}
 
     def create_identity(self,body:dict)->dict:
         value=create_identity(identity_id=body.get("id") or _id("person"),kind=body.get("kind","person"),display_name=body["display_name"]); value.update({k:body[k] for k in ("description","contact") if k in body}); validate_identity(value); self.store.upsert("identities",value); return value
@@ -103,7 +184,7 @@ class MemoryNode:
             created_at=body.get("created_at") or datetime.now(timezone.utc).isoformat(),
             place_id=body.get("place_id"), time=body.get("time"), people=body.get("people"),
             media=body.get("media"), permissions=body.get("permissions"))
-        self.store.upsert("records",value); self.export_change(envelope_id=_id("envelope"),records=[value]); return value
+        self.store.upsert("records",value); self.export_change(envelope_id=_id("envelope"),records=[value]); self.add_provenance_event(event_type="created", actor_id=contributor, record_id=value["id"], details={"revision": value["revision"]["version"]}); return value
     def revise_memory(self,record_id:str,body:dict)->dict:
         original=self.store.get("records",record_id)
         if not original: raise ValueError("memory not found")
@@ -112,6 +193,7 @@ class MemoryNode:
         revised=revise_record(original,text=body.get("text"),contributor_id=contributor,change_type=body.get("change_type","correction"))
         self.store.upsert("records",revised)
         self.export_change(envelope_id=_id("envelope"),records=[revised])
+        self.add_provenance_event(event_type="revised", actor_id=contributor, record_id=record_id, details={"revision": revised["revision"]["version"], "change_type": revised["revision"].get("change_type")})
         return revised
 
     def withdraw_memory(self,record_id:str,body:dict)->dict:
@@ -126,6 +208,7 @@ class MemoryNode:
         self.store.upsert("tombstones",tombstone)
         self.store.remove("records",record_id)
         self.export_change(envelope_id=_id("envelope"),tombstones=[tombstone])
+        self.add_provenance_event(event_type="withdrawn", actor_id=issued_by, record_id=record_id, details={"reason": tombstone["reason"]})
         return tombstone
 
     def create_media(self,body:dict)->dict:
@@ -138,7 +221,7 @@ class MemoryNode:
             if key in body: value[key]=body[key]
         validate_media(value)
         self.media.put(raw,content_hash)
-        self.store.upsert("media",value); self.export_change(envelope_id=_id("envelope"),media=[value]); return value
+        self.store.upsert("media",value); self.export_change(envelope_id=_id("envelope"),media=[value]); self.add_provenance_event(event_type="created", actor_id=contributor, record_id=value["id"], details={"media": True}); return value
 
     def media_bytes(self,media_id:str)->tuple[dict,bytes]:
         value=self.store.get("media",media_id)
@@ -153,7 +236,7 @@ class MemoryNode:
 
     def create_album(self,body:dict)->dict:
         if not self.store.get("identities",body["contributor_id"]): raise ValueError("contributor identity must exist before creating an album")
-        value=create_album(album_id=body.get("id") or _id("album"),title=body["title"],contributor_id=body["contributor_id"]); value.update({k:body[k] for k in ("description","items","people","places","time","permissions") if k in body}); validate_album(value); self.store.upsert("albums",value); self.export_change(envelope_id=_id("envelope"),albums=[value]); return value
+        value=create_album(album_id=body.get("id") or _id("album"),title=body["title"],contributor_id=body["contributor_id"]); value.update({k:body[k] for k in ("description","items","people","places","time","permissions") if k in body}); validate_album(value); self.store.upsert("albums",value); self.export_change(envelope_id=_id("envelope"),albums=[value]); self.add_provenance_event(event_type="created", actor_id=body["contributor_id"], record_id=value["id"], details={"album": True}); return value
 
 class Handler(BaseHTTPRequestHandler):
     node:MemoryNode
@@ -169,6 +252,8 @@ class Handler(BaseHTTPRequestHandler):
             if path in ("/","/app.js","/styles.css"): return self._serve_asset(path)
             if path=="/health": return self._json(200,{"ok":True,"protocol":"memory-of-humanity","instance_id":self.node.instance_id})
             if path in ("/federation/discovery","/api/discovery"): return self._json(200,self.node.discovery())
+            if path == "/api/peers": return self._json(200, {"peers": self.node.peers()})
+            if path == "/api/federation/conflicts": return self._json(200, {"conflicts": self.node.conflicts()})
             if path in ("/records","/api/records"): return self._json(200,{"records":_public_records(self.node.store.get_all("records"))})
             if path=="/api/identities": return self._json(200,{"identities":self.node.store.get_all("identities")})
             if path=="/api/consents": return self._json(200,{"consents":self.node.store.get_all("consents")})
@@ -195,16 +280,9 @@ class Handler(BaseHTTPRequestHandler):
             if path=="/federation/import": return self._json(200,self.node.import_response(body))
             if path=="/federation/publish": return self._json(201,{"cursor":str(self.node.export_change(**body))})
             if path=="/federation/sync-peer":
-                import urllib.request
-                from urllib.parse import urljoin
-                peer_url=body.pop("peer_url").rstrip("/")+"/"
-                if not (peer_url.startswith("http://") or peer_url.startswith("https://")): raise ValueError("peer_url must use http:// or https://")
-                def fetcher(method,endpoint,payload):
-                    data=json.dumps(payload).encode() if payload is not None else None
-                    req=urllib.request.Request(urljoin(peer_url,endpoint.lstrip("/")),data=data,method=method,headers={"Content-Type":"application/json"} if data else {})
-                    with urllib.request.urlopen(req,timeout=10) as response:
-                        return json.loads(response.read())
-                return self._json(200,self.node.sync_peer(body,fetcher))
+                return self._json(200,self.node.sync_configured_peer(body["peer_id"]))
+            if path=="/api/peers": return self._json(201,self.node.add_peer(body))
+            if path=="/api/peers/sync": return self._json(200,self.node.sync_configured_peer(body["peer_id"]))
             if path=="/api/identities": return self._json(201,self.node.create_identity(body))
             if path=="/api/consents": return self._json(201,self.node.create_consent(body))
             if path=="/api/memories": return self._json(201,self.node.create_memory(body))
