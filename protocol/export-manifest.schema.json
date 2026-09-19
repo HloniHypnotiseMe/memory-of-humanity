@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory of Humanity Export Manifest",
+  "type": "object",
+  "required": ["manifest_id", "protocol", "records"],
+  "properties": {
+    "manifest_id": {"type": "string", "pattern": "^moh:manifest:[A-Za-z0-9._:-]+$"},
+    "protocol": {"type": "string", "const": "memory-of-humanity"},
+    "version": {"type": "string"},
+    "created_at": {"type": ["string", "null"]},
+    "source_instance": {"type": ["string", "null"], "pattern": "^moh:instance:"},
+    "records": {"type": "array", "items": {"type": "string", "pattern": "^moh:"}},
+    "media": {"type": "array", "items": {"type": "string", "pattern": "^moh:media:"}},
+    "checksums": {"type": "object"},
+    "notes": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
