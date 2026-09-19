@@ -3,9 +3,13 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Iterable
 
+from core.albums import validate_album
+from core.media import validate_media
+
 LAYER_TYPES = {
     "people", "stories", "photographs", "newspapers",
-    "artefacts", "technologies", "events", "disagreements", "other",
+    "artefacts", "technologies", "events", "disagreements", "albums",
+    "media", "other",
 }
 
 
@@ -19,6 +23,20 @@ def _year(value: Any) -> int | None:
         return int(raw[:4])
     except ValueError:
         return None
+
+
+def _year_from_media(media: dict[str, Any]) -> int | None:
+    captured_at = media.get("captured_at")
+    if not isinstance(captured_at, str):
+        return None
+    try:
+        return int(captured_at[:4])
+    except ValueError:
+        return None
+
+
+def _period(year: int | None) -> str:
+    return str(year // 10 * 10) if year is not None else "unknown"
 
 
 def _layer_for_record(record: dict[str, Any]) -> str:
@@ -63,6 +81,8 @@ def build_place_history(
     place_id: str,
     start: str | None = None,
     end: str | None = None,
+    albums: Iterable[dict[str, Any]] | None = None,
+    media: Iterable[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not history_id.startswith("moh:place-history:"):
         raise ValueError("history_id must start with moh:place-history:")
@@ -72,13 +92,43 @@ def build_place_history(
     record_list = list(records)
     source_list = list(sources)
     relationship_list = list(relationships)
+    album_list = list(albums or [])
+    media_list = list(media or [])
+
+    for album in album_list:
+        validate_album(album)
+    for media_item in media_list:
+        validate_media(media_item)
+
+    media_by_id = {item["id"]: item for item in media_list}
     layers: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+
     for record in record_list:
         year = _year(record.get("time"))
-        key = str(year // 10 * 10) if year is not None else "unknown"
+        key = _period(year)
         layers[key][_layer_for_record(record)].append(record["id"])
         for media_id in _media_ids(record):
-            layers[key]["photographs"].append(media_id)
+            layers[key]["media"].append(media_id)
+            media_item = media_by_id.get(media_id)
+            if media_item and media_item.get("media_type") == "image":
+                layers[key]["photographs"].append(media_id)
+
+    for album in album_list:
+        key = _period(_year(album.get("time")))
+        layers[key]["albums"].append(album["id"])
+        for item_id in album.get("items", []):
+            if not isinstance(item_id, str) or not item_id.startswith("moh:media:"):
+                continue
+            layers[key]["media"].append(item_id)
+            media_item = media_by_id.get(item_id)
+            if media_item and media_item.get("media_type") == "image":
+                layers[key]["photographs"].append(item_id)
+
+    for media_item in media_list:
+        key = _period(_year_from_media(media_item))
+        layers[key]["media"].append(media_item["id"])
+        if media_item.get("media_type") == "image":
+            layers[key]["photographs"].append(media_item["id"])
 
     for source in source_list:
         if source.get("source_type") != "newspaper":
@@ -89,7 +139,7 @@ def build_place_history(
         except ValueError:
             key = "unknown"
         else:
-            key = str(year // 10 * 10)
+            key = _period(year)
         layers[key]["newspapers"].append(source["id"])
 
     for relationship in relationship_list:
@@ -101,7 +151,7 @@ def build_place_history(
                 if record.get("id") == candidate:
                     year = _year(record.get("time"))
                     if year is not None:
-                        key = str(year // 10 * 10)
+                        key = _period(year)
                         break
             if key != "unknown":
                 break
