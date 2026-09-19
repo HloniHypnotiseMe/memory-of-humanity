@@ -26,6 +26,29 @@ from .web import read_asset, query_params
 
 def _id(prefix: str) -> str: return f"moh:{prefix}:{uuid.uuid4().hex}"
 
+def _publicly_visible(value: dict) -> bool:
+    permissions = value.get("permissions")
+    if not isinstance(permissions, dict):
+        return True
+    visibility = permissions.get("visibility", "public")
+    if visibility == "public":
+        return True
+    if visibility != "sealed":
+        return False
+    sealed_until = permissions.get("sealed_until")
+    if not sealed_until:
+        return False
+    try:
+        return datetime.fromisoformat(sealed_until.replace("Z", "+00:00")) <= datetime.now(timezone.utc)
+    except ValueError:
+        return False
+
+def _public_records(values: list[dict]) -> list[dict]:
+    return [value for value in values if _publicly_visible(value)]
+
+def _public_albums(values: list[dict]) -> list[dict]:
+    return [value for value in values if _publicly_visible(value)]
+
 class MemoryNode:
     def __init__(self, store: MemoryStore, *, instance_id: str, name: str, media_root: str = "data/media"): self.store,self.instance_id,self.name,self.media=store,instance_id,name,MediaBlobStore(media_root)
     def discovery(self)->dict:
