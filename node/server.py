@@ -1,4 +1,6 @@
 from __future__ import annotations
+import base64
+import hashlib
 import json
 import uuid
 from datetime import datetime, timezone
@@ -13,9 +15,12 @@ from core.federation_import import apply_sync_response
 from core.federation_sync import incremental_sync
 from core.identity import create_identity, validate_identity
 from core.place_history import build_place_history
+from core.media import create_media, validate_media
 from core.records import create_memory, validate_record
 from core.search import search_records
-from .store import COLLECTIONS, LOCAL_COLLECTIONS, MemoryStore\nfrom .media_store import MediaBlobStore\nfrom core.album_explorer import explore_album
+from .store import COLLECTIONS, LOCAL_COLLECTIONS, MemoryStore
+from .media_store import MediaBlobStore
+from core.album_explorer import explore_album
 from .web import read_asset, query_params
 
 
@@ -58,7 +63,7 @@ class MemoryNode:
         contributor=body["contributor_id"]
         if not self.store.get("identities",contributor): raise ValueError("contributor identity must exist before uploading media")
         raw=base64.b64decode(body["data_base64"],validate=True)
-        content_hash=body.get("content_hash") or __import__("hashlib").sha256(raw).hexdigest()
+        content_hash=body.get("content_hash") or hashlib.sha256(raw).hexdigest()
         self.media.put(raw,content_hash)
         value=create_media(media_id=body.get("id") or _id("media"),media_type=body["media_type"],content_hash=content_hash,contributor_id=contributor,source_uri=body.get("source_uri"))
         for key in ("mime_type","captured_at","location","derivative_of","rights"):
@@ -95,10 +100,14 @@ class Handler(BaseHTTPRequestHandler):
             if path in ("/records","/api/records"): return self._json(200,{"records":self.node.store.get_all("records")})
             if path=="/api/identities": return self._json(200,{"identities":self.node.store.get_all("identities")})
             if path=="/api/consents": return self._json(200,{"consents":self.node.store.get_all("consents")})
-            if path=="/api/albums": return self._json(200,{"albums":self.node.store.get_all("albums")})\n            if path.startswith("/api/albums/") and path.endswith("/explore"): return self._json(200,self.node.explore_album(path.split("/")[3]))
+            if path=="/api/albums": return self._json(200,{"albums":self.node.store.get_all("albums")})
+            if path.startswith("/api/albums/") and path.endswith("/explore"): return self._json(200,self.node.explore_album(path.split("/")[3]))
             if path=="/api/search":
                 result=search_records(self.node.store.get_all("records"),text=(q.get("q") or [""])[0],limit=min(int((q.get("limit") or [20])[0]),100)); return self._json(200,result)
-            if path=="/api/media/": raise ValueError("media id is required")\n            if path.startswith("/media/"):\n                value,data=self.node.media_bytes(path.split("/")[2]); self.send_response(200); self.send_header("Content-Type",value.get("mime_type","application/octet-stream")); self.send_header("Content-Length",str(len(data))); self.end_headers(); self.wfile.write(data); return\n            if path=="/api/place-history":
+            if path=="/api/media/": raise ValueError("media id is required")
+            if path.startswith("/media/"):
+                value,data=self.node.media_bytes(path.split("/")[2]); self.send_response(200); self.send_header("Content-Type",value.get("mime_type","application/octet-stream")); self.send_header("Content-Length",str(len(data))); self.end_headers(); self.wfile.write(data); return
+            if path=="/api/place-history":
                 place=(q.get("place_id") or [None])[0]
                 if not place: raise ValueError("place_id is required")
                 result=build_place_history(self.node.store.get_all("records"),self.node.store.get_all("sources"),self.node.store.get_all("relationships"),history_id=_id("place-history"),place_id=place,albums=self.node.store.get_all("albums"),media=self.node.store.get_all("media")); return self._json(200,result)
@@ -113,7 +122,8 @@ class Handler(BaseHTTPRequestHandler):
             if path=="/federation/publish": return self._json(201,{"cursor":str(self.node.export_change(**body))})
             if path=="/api/identities": return self._json(201,self.node.create_identity(body))
             if path=="/api/consents": return self._json(201,self.node.create_consent(body))
-            if path=="/api/memories": return self._json(201,self.node.create_memory(body))\n            if path=="/api/media": return self._json(201,self.node.create_media(body))
+            if path=="/api/memories": return self._json(201,self.node.create_memory(body))
+            if path=="/api/media": return self._json(201,self.node.create_media(body))
             if path=="/api/albums": return self._json(201,self.node.create_album(body))
             return self._json(404,{"error":"not found"})
         except (ValueError,KeyError,TypeError,json.JSONDecodeError) as exc: return self._json(400,{"error":str(exc)})
